@@ -1,18 +1,21 @@
 package bikerboys.wackylife.Wildcard.wildcards;
 
 import bikerboys.wackylife.Wildcard.*;
+import bikerboys.wackylife.networking.*;
+import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.server.*;
+import net.minecraft.server.network.*;
 
 import java.util.*;
 
 public class WackySkins extends Wildcard {
     // actualname, changedname
     public Map<String, String> playerNameMap = new HashMap<>();
-    public int tickDelay;
+    public int tickDelay = 24000;
 
     @Override
     public void tick(MinecraftServer server) {
-        if (tickDelay >= 1) {
+        if (tickDelay > 0) {
             tickDelay--;
         }
 
@@ -31,6 +34,10 @@ public class WackySkins extends Wildcard {
         for (String playerName : playerNames) {
             playerNameMap.put(playerName, playerName);
         }
+
+        sendtoplayers(server);
+
+
 
 
     }
@@ -55,6 +62,18 @@ public class WackySkins extends Wildcard {
                 playerNameMap.put(playerNames.get(i), playerNameMap.get(next));
                 playerNameMap.put(next, temp);
             }
+        }
+
+        sendtoplayers(server);
+
+
+    }
+
+    private void sendtoplayers(MinecraftServer server) {
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            WackyPlayerMap wackyPlayerMap = new WackyPlayerMap(playerNameMap);
+            ServerPlayNetworking.send(player, wackyPlayerMap);
+
         }
     }
 }

@@ -4,7 +4,8 @@ import bikerboys.wackylife.Wildcard.wildcards.*;
 import net.minecraft.util.*;
 
 public enum WildcardEnum implements StringIdentifiable {
-    WACKY_SKINS("wackyskins");
+    WACKY_SKINS("wackyskins"),
+    EMPTY("empty");
 
 
     String id;
@@ -17,6 +18,9 @@ public enum WildcardEnum implements StringIdentifiable {
         switch (id) {
             case "wackyskins" -> {
                 return new WackySkins();
+            }
+            case "empty" -> {
+                return new Empty();
             }
 
             default -> {

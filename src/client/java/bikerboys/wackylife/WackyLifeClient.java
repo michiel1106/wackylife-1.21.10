@@ -34,11 +34,6 @@ public class WackyLifeClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		ClientTickEvents.START_CLIENT_TICK.register((minecraftClient -> {
-			System.out.println(playerNameMap);
-		}));
-
-
 		ClientPlayNetworking.registerGlobalReceiver(AlivePlayerList.ID, ((alivePlayerList, context) -> {
 			WackyLifeClient.playerNameList = alivePlayerList.playerNames();
 		}));

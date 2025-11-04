@@ -1,12 +1,14 @@
 {
-	"required": true,
-	"package": "bikerboys.wackylife.mixin.client",
-	"compatibilityLevel": "JAVA_21",
-	"client": [
-		"GameRendererMixin",
-		"PlayerListHudMixin"
-	],
-	"injectors": {
-		"defaultRequire": 1
+  "required": true,
+  "package": "bikerboys.wackylife.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "GameRendererMixin",
+    "PlayerEntityRendererMixin",
+    "PlayerListHudMixin",
+    "PlayerListRedirectMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
 	}
 }
