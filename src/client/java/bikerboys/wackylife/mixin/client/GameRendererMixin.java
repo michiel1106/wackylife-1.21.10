@@ -39,16 +39,12 @@ public abstract class GameRendererMixin {
         double maxRange = Math.max(blockInteractionRange, entityInteractionRange);
         double squaredMaxRange = MathHelper.square(maxRange);
 
-        // Get camera orientation
-        Vec3d forward = camera.getRotationVec(tickProgress); // forward direction
-        Vec3d up = new Vec3d(0, 1, 0);                        // world up
-        Vec3d right = forward.crossProduct(up).normalize();   // right direction
-        up = right.crossProduct(forward).normalize();         // recomputed exact up
-
-        // Compute local-space offset
+        Vec3d forward = camera.getRotationVec(tickProgress);
+        Vec3d up = new Vec3d(0, 1, 0);
+        Vec3d right = forward.crossProduct(up).normalize();
+        up = right.crossProduct(forward).normalize();
         Vec3d offset = right.multiply(x).add(up.multiply(y)).add(forward.multiply(z));
 
-        // Starting point for raycasts with local offset
         Vec3d start = camera.getCameraPosVec(tickProgress).add(offset);
         Vec3d end = start.add(forward.multiply(maxRange));
 

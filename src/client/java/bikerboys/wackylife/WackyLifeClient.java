@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.*;
 import net.fabricmc.fabric.api.client.networking.v1.*;
+import net.fabricmc.loader.api.*;
 import net.minecraft.server.command.*;
 
 import java.util.*;
@@ -33,6 +34,13 @@ public class WackyLifeClient implements ClientModInitializer {
 		}));
 
 
+		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+			extracted();
+		}
+
+	}
+
+	private static void extracted() {
 		ClientCommandRegistrationCallback.EVENT.register((commandDispatcher, commandRegistryAccess) -> commandDispatcher.register(ClientCommandManager.literal("setx").then(ClientCommandManager.argument("x", FloatArgumentType.floatArg()).executes(context -> {
 			float x1 = FloatArgumentType.getFloat(context, "x");
 			x = x1;
@@ -69,6 +77,5 @@ public class WackyLifeClient implements ClientModInitializer {
 			crosshairz = z1;
 			return 0;
 		}))));
-
 	}
 }

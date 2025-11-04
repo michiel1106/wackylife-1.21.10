@@ -109,7 +109,7 @@ public class WackyCmdManager {
         );
 
         // pausetoggle (requires op)
-        root.then(CommandManager.literal("pausetoggle")
+        root.then(CommandManager.literal("pause")
                 .requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     Constants.paused = !Constants.paused;
