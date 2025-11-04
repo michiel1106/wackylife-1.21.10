@@ -62,7 +62,7 @@ public class DeathsManager {
         ServerPlayerEntity target = server.getPlayerManager().getPlayer(targetName);
 
         if (claimer == null || target == null) return;
-        series.onPlayerKill(claimer, target, claimer.getEntityWorld());
+        series.onPlayerKill(claimer, target, server);
     }
 
     public List<String> getDeadPlayerNames() {

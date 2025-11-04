@@ -118,7 +118,7 @@ public class WackyCmdManager {
         );
 
         // initialize (requires op)
-        root.then(CommandManager.literal("initialize")
+        root.then(CommandManager.literal("start")
                 .requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     WackyLife.wackyLife.initialize(context.getSource().getWorld());

@@ -43,9 +43,9 @@ public class ScoreboardManager {
         }
     }
 
-    public int getLives(PlayerEntity player, World world) {
-        if (world.getServer() != null) {
-            ScoreAccess scoreboard = getScoreboard(player, world.getServer(), Constants.LivesScoreboard);
+    public int getLives(PlayerEntity player, MinecraftServer server) {
+        if (server != null) {
+            ScoreAccess scoreboard = getScoreboard(player, server, Constants.LivesScoreboard);
             if (scoreboard != null) {
                 return scoreboard.getScore();
             }
@@ -55,9 +55,9 @@ public class ScoreboardManager {
 
     }
 
-    public void incrementLives(PlayerEntity player, World world) {
-        if (world.getServer() != null) {
-            ScoreAccess scoreboard = getScoreboard(player, world.getServer(), Constants.LivesScoreboard);
+    public void incrementLives(PlayerEntity player, MinecraftServer server) {
+        if (server != null) {
+            ScoreAccess scoreboard = getScoreboard(player, server, Constants.LivesScoreboard);
             if (scoreboard != null) {
                 scoreboard.incrementScore();
             }
@@ -74,6 +74,21 @@ public class ScoreboardManager {
         createTeamIfMissing(scoreboard, "yellow", Formatting.YELLOW);
         createTeamIfMissing(scoreboard, "red", Formatting.RED);
         createTeamIfMissing(scoreboard, "dead", Formatting.GRAY);
+    }
+
+    public int getTime(MinecraftServer server) {
+        ScoreAccess scoreboard = getScoreboard("time", server, Constants.SessionTime);
+        if (scoreboard != null) {
+            return scoreboard.getScore();
+        }
+        return -1;
+    }
+
+    public void decrementTime(MinecraftServer server) {
+        ScoreAccess scoreboard = getScoreboard("time", server, Constants.SessionTime);
+        if (scoreboard != null) {
+            scoreboard.incrementScore(-1);
+        }
     }
 
     private static void extracted(ServerScoreboard scoreboard, String killsScoreboard) {

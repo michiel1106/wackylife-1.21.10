@@ -14,9 +14,11 @@ import net.minecraft.entity.player.*;
 import net.minecraft.entity.vehicle.*;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.scoreboard.*;
+import net.minecraft.server.*;
 import net.minecraft.server.network.*;
 import net.minecraft.server.world.*;
 import net.minecraft.text.*;
+import net.minecraft.util.*;
 import net.minecraft.world.*;
 
 import java.util.*;
@@ -26,7 +28,7 @@ public class WackySeries {
 
 
     public WackySeries() {
-        ServerTickEvents.END_WORLD_TICK.register(this::tick);
+        ServerTickEvents.END_SERVER_TICK.register(this::tick);
         EntityEvent.LIVING_DEATH.register(this::onPlayerDeath);
     }
 
@@ -45,6 +47,7 @@ public class WackySeries {
                 if (objective != null) {
                     ScoreAccess newScore = scoreboard.getOrCreateScore(player, objective);
                     newScore.setScore(6);
+                    player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("6").formatted(Formatting.DARK_GREEN)));
                 }
             }
         }
@@ -54,11 +57,11 @@ public class WackySeries {
         if (Constants.paused) return EventResult.pass();
 
         if (livingEntity instanceof ServerPlayerEntity player) {
-            ServerWorld world = player.getEntityWorld();
+            MinecraftServer server = player.getEntityWorld().getServer();
             Entity attacker = damageSource.getAttacker();
 
             if (attacker instanceof PlayerEntity predator) {
-                onPlayerKill(predator, player, world);
+                onPlayerKill(predator, player, server);
             }
 
             if (damageSource.isOf(DamageTypes.FALLING_ANVIL)
@@ -68,7 +71,7 @@ public class WackySeries {
 
 
 
-                for (ServerPlayerEntity online : world.getPlayers()) {
+                for (ServerPlayerEntity online : server.getPlayerManager().getPlayerList()) {
                     online.sendMessage(Text.literal("§c" + player.getName().getString() +
                             " §7was killed! §eUse §a/wackylife claimkill " +
                             player.getName().getString() + " §eto claim the kill."), false);
@@ -76,17 +79,17 @@ public class WackySeries {
 
             }
 
-            ScoreboardManager.INSTANCE.decrementScoreboard(player, world.getServer(), Constants.LivesScoreboard);
+            ScoreboardManager.INSTANCE.decrementScoreboard(player, server, Constants.LivesScoreboard);
 
-            int lives = ScoreboardManager.INSTANCE.getLives(player, world);
+            int lives = ScoreboardManager.INSTANCE.getLives(player, server);
             if (lives == 0) {
                 player.changeGameMode(GameMode.SPECTATOR);
 
-                LightningEntity lightningEntity = EntityType.LIGHTNING_BOLT.create(world, SpawnReason.COMMAND);
+                LightningEntity lightningEntity = EntityType.LIGHTNING_BOLT.create(livingEntity.getEntityWorld(), SpawnReason.COMMAND);
                 if (lightningEntity != null) {
                     lightningEntity.setPosition(player.getX(), player.getY(), player.getZ());
                     lightningEntity.setCosmetic(true);
-                    world.spawnEntity(lightningEntity);
+                    livingEntity.getEntityWorld().spawnEntity(lightningEntity);
                 }
             }
         }
@@ -95,36 +98,47 @@ public class WackySeries {
     }
 
 
-    private void tick(ServerWorld world) {
+    private void tick(MinecraftServer server) {
 
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            ServerPlayNetworking.send(player, new CurrentSessionTime(ScoreboardManager.INSTANCE.getTime(server)));
+        }
+
+
+        List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
         if (Constants.paused) {
-            List<String> allNames = world.getPlayers().stream()
+            List<String> allNames = players.stream()
                     .map(p -> p.getName().getString())
                     .toList();
 
-            for (ServerPlayerEntity player : world.getPlayers()) {
+            for (ServerPlayerEntity player : players) {
                 ServerPlayNetworking.send(player, new AlivePlayerList(allNames));
             }
 
             return;
         }
 
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            int lives = ScoreboardManager.INSTANCE.getLives(player, world);
+        int time = ScoreboardManager.INSTANCE.getTime(server);
+        if (time > 0) {
+            ScoreboardManager.INSTANCE.decrementTime(server);
+        }
+
+        for (ServerPlayerEntity player : players) {
+            int lives = ScoreboardManager.INSTANCE.getLives(player, server);
             ServerPlayNetworking.send(player, new LivesAmountUpdate(lives));
         }
 
-        List<String> aliveNames = world.getPlayers().stream()
-                .filter(p -> ScoreboardManager.INSTANCE.getLives(p, world) >= 1)
+        List<String> aliveNames = players.stream()
+                .filter(p -> ScoreboardManager.INSTANCE.getLives(p, server) >= 1)
                 .map(p -> p.getName().getString())
                 .toList();
 
-        List<String> allNames = world.getPlayers().stream()
+        List<String> allNames = players.stream()
                 .map(p -> p.getName().getString())
                 .toList();
 
-        for (ServerPlayerEntity player : world.getPlayers()) {
-            int lives = ScoreboardManager.INSTANCE.getLives(player, world);
+        for (ServerPlayerEntity player : players) {
+            int lives = ScoreboardManager.INSTANCE.getLives(player, server);
             if (lives >= 1) {
                 ServerPlayNetworking.send(player, new AlivePlayerList(aliveNames));
             } else {
@@ -139,15 +153,15 @@ public class WackySeries {
 
 
 
-    public void onPlayerKill(PlayerEntity predator, PlayerEntity prey, World world) {
+    public void onPlayerKill(PlayerEntity predator, PlayerEntity prey, MinecraftServer server) {
         if (Constants.paused) return;
 
-        int predatorLives = ScoreboardManager.INSTANCE.getLives(predator, world);
-        int preyLives = ScoreboardManager.INSTANCE.getLives(prey, world);
+        int predatorLives = ScoreboardManager.INSTANCE.getLives(predator, server);
+        int preyLives = ScoreboardManager.INSTANCE.getLives(prey, server);
 
         if (predatorLives <= 2 && predatorLives >= 1) {
             if (preyLives >= 4) {
-                ScoreboardManager.INSTANCE.incrementLives(predator, world);
+                ScoreboardManager.INSTANCE.incrementLives(predator, server);
             }
         }
     }
