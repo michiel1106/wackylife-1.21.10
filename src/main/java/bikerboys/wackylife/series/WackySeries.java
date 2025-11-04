@@ -1,5 +1,7 @@
 package bikerboys.wackylife.series;
 
+import bikerboys.wackylife.*;
+import bikerboys.wackylife.Wildcard.*;
 import bikerboys.wackylife.manager.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.util.*;
@@ -25,7 +27,7 @@ import java.util.*;
 
 public class WackySeries {
     private final DeathsManager deathsManager = new DeathsManager(this);
-
+    private Wildcard wildcard;
 
     public WackySeries() {
         ServerTickEvents.END_SERVER_TICK.register(this::tick);
@@ -118,9 +120,15 @@ public class WackySeries {
             return;
         }
 
+        if (wildcard != null) {
+            wildcard.tick(server);
+        }
+
         int time = ScoreboardManager.INSTANCE.getTime(server);
         if (time > 0) {
             ScoreboardManager.INSTANCE.decrementTime(server);
+        } else if (time == 0){
+            endSession(server);
         }
 
         for (ServerPlayerEntity player : players) {
@@ -150,6 +158,40 @@ public class WackySeries {
 
     }
 
+    private void endSession(MinecraftServer server) {
+
+        if (this.wildcard != null) {
+            this.wildcard.deactivate(server);
+        }
+        Constants.paused = true;
+
+    }
+
+    public void setWildcard(String wildcard, MinecraftServer server) {
+        Wildcard wildcard1 = WildcardEnum.getWildcard(wildcard);
+
+        if (this.wildcard != null) {
+            this.wildcard.deactivate(server);
+        }
+
+        if (wildcard1 != null) {
+            this.wildcard = wildcard1;
+        }
+    }
+
+    public String getWildcard() {
+        if (wildcard != null) {
+            return wildcard.toString();
+        }
+        return null;
+    }
+
+    public Wildcard getWildcardObj() {
+        if (wildcard != null) {
+            return wildcard;
+        }
+        return null;
+    }
 
 
 

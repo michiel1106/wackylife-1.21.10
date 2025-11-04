@@ -5,6 +5,7 @@ import com.mojang.authlib.minecraft.client.*;
 import com.mojang.brigadier.arguments.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.*;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.*;
 import net.fabricmc.fabric.api.client.networking.v1.*;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.*;
@@ -18,6 +19,7 @@ import java.util.*;
 
 public class WackyLifeClient implements ClientModInitializer {
 	public static List<String> playerNameList = new ArrayList<>();
+	public static Map<String, String> playerNameMap = new HashMap<>();
 	public static int currentlives = -1;
 	public static int currentsessiontime = -1;
 
@@ -32,8 +34,17 @@ public class WackyLifeClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		ClientTickEvents.START_CLIENT_TICK.register((minecraftClient -> {
+			System.out.println(playerNameMap);
+		}));
+
+
 		ClientPlayNetworking.registerGlobalReceiver(AlivePlayerList.ID, ((alivePlayerList, context) -> {
 			WackyLifeClient.playerNameList = alivePlayerList.playerNames();
+		}));
+
+		ClientPlayNetworking.registerGlobalReceiver(WackyPlayerMap.ID, ((WackyPlayerMap, context) -> {
+			WackyLifeClient.playerNameMap = WackyPlayerMap.players();
 		}));
 
 		ClientPlayNetworking.registerGlobalReceiver(LivesAmountUpdate.ID, ((livesAmountUpdate, context) -> {

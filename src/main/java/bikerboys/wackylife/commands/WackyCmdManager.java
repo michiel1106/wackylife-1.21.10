@@ -1,10 +1,13 @@
 package bikerboys.wackylife.commands;
 
 import bikerboys.wackylife.*;
+import bikerboys.wackylife.Wildcard.*;
+import bikerboys.wackylife.Wildcard.wildcards.*;
 import bikerboys.wackylife.manager.*;
+import bikerboys.wackylife.series.*;
 import bikerboys.wackylife.util.*;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
@@ -13,7 +16,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
-import java.util.Collection;
+import java.util.*;
+import java.util.stream.*;
 
 public class WackyCmdManager {
 
@@ -36,6 +40,49 @@ public class WackyCmdManager {
                             return 1;
                         }))
         );
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("set")
+                        .then(CommandManager.argument("wildcard", StringArgumentType.word())
+                                .suggests((context, builder) -> CommandSource.suggestMatching(Arrays.stream(WildcardEnum.values()).map((WildcardEnum::asString)).toList(), builder))
+                                .executes(context -> {
+                                    String string = StringArgumentType.getString(context, "wildcard");
+                                    WackyLife.wackyLife.setWildcard(string, context.getSource().getServer());
+                                    return 1;
+                                })))
+        );
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("wackyskins")
+                        .then(CommandManager.literal("time")
+                                .executes(context -> {
+
+                                    int time = 0;
+
+                                    if (WackyLife.wackyLife.getWildcardObj() instanceof WackySkins wackySkins) {
+                                        context.getSource().getPlayer().sendMessage(Text.literal("Current cooldown for the next swap: " + wackySkins.tickDelay));
+                                    } else {
+                                        context.getSource().getPlayer().sendMessage(Text.literal("Current wildcard isnt wacky skins or isnt activated. Please activate it first."));
+                                    }
+
+                                    return 1;
+                                }))));
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("get")
+                        .executes(context -> {
+                            String wildcard = WackyLife.wackyLife.getWildcard();
+                            if (wildcard != null) {
+                                context.getSource().getPlayer().sendMessage(Text.literal("Current active wildcard is: " + wildcard));
+                            } else {
+                                context.getSource().getPlayer().sendMessage(Text.literal("There is currently no wildcard active. Activate one with /wackylife wildcard set {wildcard}"));
+                            }
+
+                            return 1;
+                        })));
 
         root.then(CommandManager.literal("approve")
                 .requires(source -> source.hasPermissionLevel(2))
@@ -113,6 +160,13 @@ public class WackyCmdManager {
                 .requires(source -> source.hasPermissionLevel(2))
                 .executes(context -> {
                     Constants.paused = !Constants.paused;
+
+                    if (Constants.paused) {
+                        context.getSource().getPlayer().sendMessage(Text.literal("Session is now paused!"));
+                    } else {
+                        context.getSource().getPlayer().sendMessage(Text.literal("Session has been resumed!"));
+                    }
+
                     return 1;
                 })
         );

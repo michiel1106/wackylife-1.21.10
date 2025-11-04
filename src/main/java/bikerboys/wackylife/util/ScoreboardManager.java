@@ -15,6 +15,7 @@ import java.util.*;
 
 public class ScoreboardManager {
     public static ScoreboardManager INSTANCE = new ScoreboardManager();
+    private final Map<String, String> playerTeamCache = new HashMap<>();
 
     public ScoreboardManager() {
         ServerTickEvents.START_SERVER_TICK.register(this::worldTick);
@@ -27,7 +28,6 @@ public class ScoreboardManager {
         ServerScoreboard scoreboard = server.getScoreboard();
         createTeamsAndScoreboards(scoreboard);
 
-
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             ScoreAccess scoreAccess = getScoreboard(player, server, Constants.LivesScoreboard);
             if (scoreAccess == null) continue;
@@ -39,7 +39,15 @@ public class ScoreboardManager {
                                     score == 2 ? "yellow" :
                                             score == 1 ? "red" : "dead";
 
-            scoreboard.addScoreHolderToTeam(player.getNameForScoreboard(), scoreboard.getTeam(teamName));
+            // Only update the team if it’s different from last tick
+            String cachedTeam = playerTeamCache.get(player.getName().getString());
+            if (!teamName.equals(cachedTeam)) {
+                Team team = scoreboard.getTeam(teamName);
+                if (team != null) {
+                    scoreboard.addScoreHolderToTeam(player.getNameForScoreboard(), team);
+                    playerTeamCache.put(player.getName().getString(), teamName);
+                }
+            }
         }
     }
 
