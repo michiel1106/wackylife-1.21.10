@@ -1,0 +1,136 @@
+package bikerboys.wackylife.util;
+
+import bikerboys.wackylife.*;
+import net.fabricmc.fabric.api.event.lifecycle.v1.*;
+import net.minecraft.entity.player.*;
+import net.minecraft.scoreboard.*;
+import net.minecraft.server.*;
+import net.minecraft.server.network.*;
+import net.minecraft.text.*;
+import net.minecraft.util.*;
+import net.minecraft.world.*;
+import org.jetbrains.annotations.*;
+
+import java.util.*;
+
+public class ScoreboardManager {
+    public static ScoreboardManager INSTANCE = new ScoreboardManager();
+
+    public ScoreboardManager() {
+        ServerTickEvents.START_SERVER_TICK.register(this::worldTick);
+
+    }
+
+    private void worldTick(MinecraftServer server) {
+        if (Constants.paused) return;
+
+        ServerScoreboard scoreboard = server.getScoreboard();
+        createTeamsAndScoreboards(scoreboard);
+
+
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            ScoreAccess scoreAccess = getScoreboard(player, server, Constants.LivesScoreboard);
+            if (scoreAccess == null) continue;
+
+            int score = scoreAccess.getScore();
+            String teamName =
+                    score >= 4 ? "dark_green" :
+                            score == 3 ? "green" :
+                                    score == 2 ? "yellow" :
+                                            score == 1 ? "red" : "dead";
+
+            scoreboard.addScoreHolderToTeam(player.getNameForScoreboard(), scoreboard.getTeam(teamName));
+        }
+    }
+
+    public int getLives(PlayerEntity player, World world) {
+        if (world.getServer() != null) {
+            ScoreAccess scoreboard = getScoreboard(player, world.getServer(), Constants.LivesScoreboard);
+            if (scoreboard != null) {
+                return scoreboard.getScore();
+            }
+        }
+
+        return -1;
+
+    }
+
+    public void incrementLives(PlayerEntity player, World world) {
+        if (world.getServer() != null) {
+            ScoreAccess scoreboard = getScoreboard(player, world.getServer(), Constants.LivesScoreboard);
+            if (scoreboard != null) {
+                scoreboard.incrementScore();
+            }
+        }
+    }
+
+    private void createTeamsAndScoreboards(ServerScoreboard scoreboard) {
+        extracted(scoreboard, Constants.KillsScoreboard);
+        extracted(scoreboard, Constants.SessionTime);
+        extracted(scoreboard, Constants.LivesScoreboard);
+
+        createTeamIfMissing(scoreboard, "dark_green", Formatting.DARK_GREEN);
+        createTeamIfMissing(scoreboard, "green", Formatting.GREEN);
+        createTeamIfMissing(scoreboard, "yellow", Formatting.YELLOW);
+        createTeamIfMissing(scoreboard, "red", Formatting.RED);
+        createTeamIfMissing(scoreboard, "dead", Formatting.GRAY);
+    }
+
+    private static void extracted(ServerScoreboard scoreboard, String killsScoreboard) {
+        ScoreboardObjective nullableObjective = scoreboard.getNullableObjective(killsScoreboard);
+        if (nullableObjective == null) {
+            scoreboard.addObjective(killsScoreboard, ScoreboardCriterion.DUMMY, Text.of(killsScoreboard), ScoreboardCriterion.RenderType.INTEGER, false, null);
+        }
+    }
+
+    private void createTeamIfMissing(ServerScoreboard scoreboard, String name, Formatting color) {
+        if (scoreboard.getTeam(name) == null) {
+            Team team = scoreboard.addTeam(name);
+            team.setColor(color);
+        }
+    }
+
+    @Nullable
+    public ScoreAccess getScoreboard(PlayerEntity player, MinecraftServer server, String scoreboardName) {
+        ServerScoreboard scoreboard = server.getScoreboard();
+        ScoreboardObjective objective = scoreboard.getNullableObjective(scoreboardName);
+        if (objective == null) return null;
+
+        for (ScoreboardEntry entry : scoreboard.getScoreboardEntries(objective)) {
+            if (entry.owner().equals(player.getNameForScoreboard())) {
+
+                return scoreboard.getOrCreateScore(player, objective);
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public ScoreAccess getScoreboard(String player, MinecraftServer server, String scoreboardName) {
+        ServerScoreboard scoreboard = server.getScoreboard();
+        ScoreboardObjective objective = scoreboard.getNullableObjective(scoreboardName);
+        ScoreHolder scoreHolder = ScoreHolder.fromName(player);
+        if (objective != null) {
+            return scoreboard.getOrCreateScore(scoreHolder, objective);
+        }
+        return null;
+    }
+
+    public void incrementScoreboard(PlayerEntity player, MinecraftServer server, String scoreboardName) {
+        ScoreAccess scoreboard = getScoreboard(player, server, scoreboardName);
+        if (scoreboard != null) {
+            scoreboard.incrementScore();
+        }
+    }
+
+    public void decrementScoreboard(PlayerEntity player, MinecraftServer server, String scoreboardName) {
+        ScoreAccess scoreboard = getScoreboard(player, server, scoreboardName);
+        if (scoreboard != null) {
+            if (scoreboard.getScore() > 0) {
+                scoreboard.incrementScore(-1);
+            }
+        }
+    }
+
+
+}
