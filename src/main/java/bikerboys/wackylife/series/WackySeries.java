@@ -2,6 +2,7 @@ package bikerboys.wackylife.series;
 
 import bikerboys.wackylife.*;
 import bikerboys.wackylife.Wildcard.*;
+import bikerboys.wackylife.Wildcard.wildcards.*;
 import bikerboys.wackylife.manager.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.util.*;
@@ -31,7 +32,14 @@ public class WackySeries {
 
     public WackySeries() {
         ServerTickEvents.END_SERVER_TICK.register(this::tick);
+        PlayerEvent.PLAYER_JOIN.register(this::playerJoin);
         EntityEvent.LIVING_DEATH.register(this::onPlayerDeath);
+    }
+
+    private void playerJoin(ServerPlayerEntity player) {
+        if (this.wildcard != null) {
+            this.wildcard.onPlayerJoin(player);
+        }
     }
 
     public DeathsManager getDeathsManager() {
@@ -102,8 +110,14 @@ public class WackySeries {
 
     private void tick(MinecraftServer server) {
 
+        boolean wackyskinsactive = false;
+        if (this.wildcard instanceof WackySkins) {
+            wackyskinsactive = true;
+        }
+
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(player, new CurrentSessionTime(ScoreboardManager.INSTANCE.getTime(server)));
+            ServerPlayNetworking.send(player, new WackySkinsActive(wackyskinsactive));
         }
 
 

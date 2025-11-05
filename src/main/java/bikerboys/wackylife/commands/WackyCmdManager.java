@@ -56,6 +56,15 @@ public class WackyCmdManager {
         root.then(CommandManager.literal("wildcard")
                 .requires(source -> source.hasPermissionLevel(2))
                 .then(CommandManager.literal("wackyskins")
+                        .then(CommandManager.literal("swap")
+                                .executes(context -> {
+                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                    if (wildcardObj instanceof WackySkins wackySkins) {
+                                        wackySkins.swapPlayerList(context.getSource().getServer());
+                                    }
+
+                                    return 1;
+                                }))
                         .then(CommandManager.literal("time")
                                 .executes(context -> {
                                     if (WackyLife.wackyLife.getWildcardObj() instanceof WackySkins wackySkins) {
@@ -64,7 +73,7 @@ public class WackyCmdManager {
                                         context.getSource().getPlayer().sendMessage(Text.literal("Current wildcard isnt wacky skins or isnt activated. Please activate it first."));
                                     }
                                     return 1;
-                                }))
+                                })
                         .then(CommandManager.literal("set")
                                 .then(CommandManager.argument("time", IntegerArgumentType.integer())
                                         .executes(context -> {
@@ -77,7 +86,7 @@ public class WackyCmdManager {
 
 
                                             return time;
-                                        })))));
+                                        }))))));
 
         root.then(CommandManager.literal("wildcard")
                 .requires(source -> source.hasPermissionLevel(2))

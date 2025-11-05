@@ -26,6 +26,7 @@ public class WackyLife implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(LivesAmountUpdate.ID, LivesAmountUpdate.CODEC);
 		PayloadTypeRegistry.playS2C().register(CurrentSessionTime.ID, CurrentSessionTime.CODEC);
 		PayloadTypeRegistry.playS2C().register(WackyPlayerMap.ID, WackyPlayerMap.CODEC);
+		PayloadTypeRegistry.playS2C().register(WackySkinsActive.ID, WackySkinsActive.CODEC);
 
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {

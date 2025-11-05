@@ -1,82 +1,58 @@
 package bikerboys.wackylife.mixin.client;
 
 import bikerboys.wackylife.*;
+import bikerboys.wackylife.networking.*;
 import net.fabricmc.api.*;
-import net.minecraft.client.network.*;
-import net.minecraft.client.render.command.*;
 import net.minecraft.client.render.entity.*;
-import net.minecraft.client.render.entity.state.*;
-import net.minecraft.client.render.state.*;
-import net.minecraft.client.util.math.*;
-import net.minecraft.entity.*;
 import net.minecraft.text.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
-import org.spongepowered.asm.mixin.injection.callback.*;
 
 @Mixin(PlayerEntityRenderer.class)
 @Environment(EnvType.CLIENT)
 public abstract class PlayerEntityRendererMixin {
 
-    @Inject(
+    @ModifyArg(
             method = "renderLabelIfPresent(Lnet/minecraft/client/render/entity/state/PlayerEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;Lnet/minecraft/client/render/state/CameraRenderState;)V",
-            at = @At("HEAD"),
-            cancellable = true
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;submitLabel(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Vec3d;ILnet/minecraft/text/Text;ZIDLnet/minecraft/client/render/state/CameraRenderState;)V", ordinal = 0),
+            index = 3
     )
-    private void onRenderLabelIfPresent(
-            PlayerEntityRenderState renderState,
-            MatrixStack matrices,
-            OrderedRenderCommandQueue queue,
-            CameraRenderState camera,
-            CallbackInfo ci
-    ) {
-        matrices.push();
+    private Text onRenderLabelIfPresent(Text text) {
+        if (text == null || WackyLifeClient.playerNameMap == null) return text;
 
-        int yOffset = renderState.extraEars ? -10 : 0;
+        String originalName = text.getString();
 
-        // Always check displayName first, fallback to playerName mapped
-        Text nameText = null;
+        String newName = WackyLifeClient.playerNameMap.getOrDefault(originalName, originalName);
 
-        if (renderState.playerName != null) {
-            String realName = renderState.playerName.getString();
-            String mapped = WackyLifeClient.playerNameMap.get(realName);
-            if (mapped != null) {
-                nameText = Text.of(mapped);
-            } else {
-                nameText = renderState.playerName;
-            }
+
+        Style style = text.getStyle();
+
+        if (WackyLifeClient.wackySkinsActive) {
+            return text;
         }
+        return Text.literal(newName).setStyle(style);
+    }
 
-        if (nameText != null) {
-            queue.submitLabel(
-                    matrices,
-                    renderState.nameLabelPos,
-                    yOffset,
-                    nameText,
-                    !renderState.sneaking,
-                    renderState.light,
-                    renderState.squaredDistanceToCamera,
-                    camera
-            );
-            matrices.translate(0.0F, 9.0F * 1.15F * 0.025F, 0.0F);
+
+    @ModifyArg(
+            method = "renderLabelIfPresent(Lnet/minecraft/client/render/entity/state/PlayerEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;Lnet/minecraft/client/render/state/CameraRenderState;)V",
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;submitLabel(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/util/math/Vec3d;ILnet/minecraft/text/Text;ZIDLnet/minecraft/client/render/state/CameraRenderState;)V", ordinal = 1),
+            index = 3
+    )
+    private Text yayaya(Text text) {
+        if (text == null || WackyLifeClient.playerNameMap == null) return text;
+
+        String originalName = text.getString();
+
+        String newName = WackyLifeClient.playerNameMap.getOrDefault(originalName, originalName);
+
+
+        Style style = text.getStyle();
+
+        if (WackyLifeClient.wackySkinsActive) {
+            return text;
         }
+        return Text.literal(newName).setStyle(style);
 
-        // Render displayName as usual
-        if (renderState.displayName != null) {
-            queue.submitLabel(
-                    matrices,
-                    renderState.nameLabelPos,
-                    yOffset,
-                    renderState.displayName,
-                    !renderState.sneaking,
-                    renderState.light,
-                    renderState.squaredDistanceToCamera,
-                    camera
-            );
-        }
-
-        matrices.pop();
-
-        ci.cancel(); // prevent vanilla rendering
     }
 }

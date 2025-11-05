@@ -27,6 +27,12 @@ public class WackySkins extends Wildcard {
     }
 
     @Override
+    public void onPlayerJoin(ServerPlayerEntity player) {
+        WackyPlayerMap wackyPlayerMap = new WackyPlayerMap(playerNameMap);
+        ServerPlayNetworking.send(player, wackyPlayerMap);
+    }
+
+    @Override
     public void deactivate(MinecraftServer server) {
         List<String> playerNames = new ArrayList<>();
         server.getPlayerManager().getPlayerList().forEach(player -> playerNames.add(player.getName().getString()));

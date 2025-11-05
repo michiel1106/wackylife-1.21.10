@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.*;
 import net.fabricmc.loader.api.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.*;
+import net.minecraft.client.network.*;
 import net.minecraft.server.command.*;
 import net.minecraft.util.math.*;
 
@@ -20,6 +21,9 @@ import java.util.*;
 public class WackyLifeClient implements ClientModInitializer {
 	public static List<String> playerNameList = new ArrayList<>();
 	public static Map<String, String> playerNameMap = new HashMap<>();
+	public static Map<String, PlayerListEntry> ENTRY_CACHE = new HashMap<>();
+
+	public static boolean wackySkinsActive = false;
 	public static int currentlives = -1;
 	public static int currentsessiontime = -1;
 
@@ -38,8 +42,15 @@ public class WackyLifeClient implements ClientModInitializer {
 			WackyLifeClient.playerNameList = alivePlayerList.playerNames();
 		}));
 
+		ClientPlayNetworking.registerGlobalReceiver(WackySkinsActive.ID, ((wackySkinsActive1, context) -> {
+			wackySkinsActive = wackySkinsActive1.active();
+		}));
+
 		ClientPlayNetworking.registerGlobalReceiver(WackyPlayerMap.ID, ((WackyPlayerMap, context) -> {
-			WackyLifeClient.playerNameMap = WackyPlayerMap.players();
+			WackyLifeClient.playerNameMap.clear();
+			WackyLifeClient.playerNameMap.putAll(WackyPlayerMap.players());
+
+			WackyLifeClient.ENTRY_CACHE.clear();
 		}));
 
 		ClientPlayNetworking.registerGlobalReceiver(LivesAmountUpdate.ID, ((livesAmountUpdate, context) -> {
