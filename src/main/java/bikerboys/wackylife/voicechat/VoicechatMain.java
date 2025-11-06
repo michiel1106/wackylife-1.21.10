@@ -85,6 +85,7 @@ public class VoicechatMain implements VoicechatPlugin {
             short[] pcmData = decoder.decode(opusData);
             if (pcmData == null) return opusData;
 
+
             short[] processed = DeepVoiceEffect.applyEffect(pcmData);
             return encoder.encode(processed);
         } catch (Exception e) {
