@@ -1,51 +1,89 @@
 package bikerboys.wackylife.voicechat;
 
 public class DeepVoiceEffect {
-
-    private static final double SAMPLE_RATE = 16000.0;
-
-    public static short[] applyAnonymousVoice(short[] audio) {
-        short[] pitched = pitchShiftManual(audio, -8, -30);  // -8 semitones, -30 cents
-        short[] muffled = lowPassSmooth(pitched, 0.07);       // soft low-pass
-        short[] amplified = normalizeGain(muffled, 1.3);      // gentle gain
-        return amplified;
+    public static short[] applyEffect(short[] audio) {
+        return deepenVoice(audio, 0.85f);
     }
 
+    private static short[] deepenVoice(short[] audio, float pitchFactor) {
+        if (audio == null || audio.length == 0) return audio;
 
-    private static short[] pitchShiftManual(short[] input, double semitones, double cents) {
-        // Convert semitones + cents to pitch factor
-        double factor = Math.pow(2, semitones / 12.0) * Math.pow(2, cents / 1200.0);
+        int stretchedLength = Math.max(1, Math.round(audio.length / pitchFactor));
+        float[] stretched = new float[stretchedLength];
 
-        short[] output = new short[input.length];
-        for (int i = 0; i < input.length; i++) {
-            double srcIndex = i * factor;
-            if (srcIndex >= input.length) srcIndex = input.length - 1;
-            int index1 = (int) Math.floor(srcIndex);
-            int index2 = Math.min(index1 + 1, input.length - 1);
-            double frac = srcIndex - index1;
-            double sample = input[index1] * (1 - frac) + input[index2] * frac;
-            output[i] = (short) Math.max(Math.min(sample, Short.MAX_VALUE), Short.MIN_VALUE);
+        int grainSize = 1024; // length of each analysis window
+        int overlap = grainSize / 2;
+        int hopIn = grainSize - overlap;
+        int hopOut = Math.round(hopIn / pitchFactor);
+
+        float[] window = new float[grainSize];
+        for (int i = 0; i < grainSize; i++) {
+            window[i] = 0.5f * (1f - (float)Math.cos(1f * Math.PI * i / (grainSize - 1)));
         }
-        return output;
-    }
 
+        int inputPos = 0;
+        int outputPos = 0;
 
-    private static short[] lowPassSmooth(short[] input, double alpha) {
-        short[] output = new short[input.length];
-        double y = input[0];
-        for (int i = 0; i < input.length; i++) {
-            y += alpha * (input[i] - y);
-            output[i] = (short)Math.max(Math.min(y, Short.MAX_VALUE), Short.MIN_VALUE);
+        // first grain straight copy
+        for (int i = 0; i < grainSize && i < audio.length && i < stretched.length; i++) {
+            stretched[i] += window[i] * audio[i];
         }
-        return output;
+
+        inputPos += hopIn;
+        outputPos += hopOut;
+
+        while (inputPos + grainSize < audio.length && outputPos + grainSize < stretched.length) {
+            // find best overlap offset in +/- searchRange
+            int searchRange = overlap / 2;
+            int bestOffset = 0;
+            float bestCorr = -Float.MAX_VALUE;
+
+            for (int offset = -searchRange; offset <= searchRange; offset++) {
+                float corr = 0f;
+                for (int j = 0; j < overlap; j++) {
+                    int aIdx = inputPos + offset + j;
+                    int bIdx = inputPos - overlap + j;
+                    if (aIdx < 0 || aIdx >= audio.length || bIdx < 0 || bIdx >= audio.length) continue;
+                    corr += audio[aIdx] * audio[bIdx];
+                }
+                if (corr > bestCorr) {
+                    bestCorr = corr;
+                    bestOffset = offset;
+                }
+            }
+
+            int alignedPos = inputPos + bestOffset;
+
+            // add grain with Hann window
+            for (int i = 0; i < grainSize && outputPos + i < stretched.length && alignedPos + i < audio.length; i++) {
+                stretched[outputPos + i] += window[i] * audio[alignedPos + i];
+            }
+
+            inputPos += hopIn;
+            outputPos += hopOut;
+        }
+
+        // resample back to short array using linear interpolation
+        short[] result = new short[audio.length];
+        float scale = (stretchedLength - 1f) / (result.length - 1f);
+        for (int i = 0; i < result.length; i++) {
+            float pos = i * scale;
+            int idx = (int)pos;
+            float frac = pos - idx;
+            float s0 = stretched[idx];
+            float s1 = (idx + 1 < stretched.length) ? stretched[idx + 1] : s0;
+            result[i] = clampToShort(Math.round(s0 * (1 - frac) + s1 * frac));
+        }
+
+        return result;
     }
 
-    private static short[] normalizeGain(short[] input, double gain) {
-        short[] output = new short[input.length];
-        for (int i = 0; i < input.length; i++) {
-            double v = input[i] * gain;
-            output[i] = (short)Math.max(Math.min(v, Short.MAX_VALUE), Short.MIN_VALUE);
-        }
-        return output;
+    private static short clampToShort(int val) {
+        if (val > Short.MAX_VALUE) return Short.MAX_VALUE;
+        if (val < Short.MIN_VALUE) return Short.MIN_VALUE;
+        return (short) val;
     }
+
+
+
 }

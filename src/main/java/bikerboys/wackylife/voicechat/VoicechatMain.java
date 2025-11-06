@@ -44,6 +44,7 @@ public class VoicechatMain implements VoicechatPlugin {
     }
 
     private void onAudioPacket(MicrophonePacketEvent event) {
+
         VoicechatConnection senderConnection = event.getSenderConnection();
         if (senderConnection == null) return;
 
@@ -51,12 +52,13 @@ public class VoicechatMain implements VoicechatPlugin {
         MicrophonePacket originalPacket = event.getPacket();
         byte[] opusData = originalPacket.getOpusEncodedData().clone();
 
-        // 1️⃣ Apply effect
         byte[] processedOpus = processOpusAudio(opusData);
 
-        // 2️⃣ Send to everyone individually
         VoicechatServerApi api = event.getVoicechat();
         for (UUID targetUUID : connectedPlayers) {
+
+            if (targetUUID.equals(senderUUID)) continue;
+
             VoicechatConnection targetConnection = api.getConnectionOf(targetUUID);
             if (targetConnection == null) continue;
 
@@ -73,7 +75,6 @@ public class VoicechatMain implements VoicechatPlugin {
             api.sendLocationalSoundPacketTo(targetConnection, newPacket);
         }
 
-        // 3️⃣ Optional: overwrite original packet for sender
         originalPacket.setOpusEncodedData(processedOpus);
     }
 
@@ -84,7 +85,7 @@ public class VoicechatMain implements VoicechatPlugin {
             short[] pcmData = decoder.decode(opusData);
             if (pcmData == null) return opusData;
 
-            short[] processed = DeepVoiceEffect.applyAnonymousVoice(pcmData);
+            short[] processed = DeepVoiceEffect.applyEffect(pcmData);
             return encoder.encode(processed);
         } catch (Exception e) {
             e.printStackTrace();
