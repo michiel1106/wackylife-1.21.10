@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 
 @Mixin(PlayerEntityRenderer.class)
-@Environment(EnvType.CLIENT)
 public abstract class PlayerEntityRendererMixin {
 
     @ModifyArg(
@@ -27,7 +26,7 @@ public abstract class PlayerEntityRendererMixin {
 
         Style style = text.getStyle();
 
-        if (WackyLifeClient.wackySkinsActive) {
+        if (!WackyLifeClient.wackySkinsActive) {
             return text;
         }
         return Text.literal(newName).setStyle(style);
@@ -49,7 +48,7 @@ public abstract class PlayerEntityRendererMixin {
 
         Style style = text.getStyle();
 
-        if (WackyLifeClient.wackySkinsActive) {
+        if (!WackyLifeClient.wackySkinsActive) {
             return text;
         }
         return Text.literal(newName).setStyle(style);

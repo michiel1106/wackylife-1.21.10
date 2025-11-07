@@ -11,6 +11,7 @@ import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.entity.player.*;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -40,6 +41,39 @@ public class WackyCmdManager {
                             return 1;
                         }))
         );
+
+        root.then(CommandManager.literal("wildcard")
+                        .requires(source -> source.hasPermissionLevel(2))
+                        .then(CommandManager.literal("wackyskins")
+                                .then(CommandManager.literal("peek")
+                                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                                                .executes(ctx -> {
+                                                    ServerPlayerEntity player = EntityArgumentType.getPlayer(ctx, "player");
+                                                    String realName = player.getName().getString();
+                                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+
+                                                    if (wildcardObj instanceof WackySkins wackySkins) {
+                                                        String fakeName = wackySkins.playerNameMap.get(realName);
+
+                                                        if (fakeName != null) {
+                                                            ctx.getSource().getPlayer().sendMessage(
+                                                                    Text.literal("The player's fake identity is ")
+                                                                            .append(Text.literal(fakeName))
+                                                                            .append(Text.literal(", they are actually: "))
+                                                                            .append(Text.literal(realName))
+                                                            );
+                                                        } else {
+                                                            ctx.getSource().getPlayer().sendMessage(
+                                                                    Text.literal(realName)
+                                                                            .append(Text.literal(" does not currently have a fake identity."))
+                                                            );
+                                                        }
+                                                    } else {
+                                                        ctx.getSource().getPlayer().sendMessage(Text.literal("Wacky skins is currently not active."));
+                                                    }
+
+                                                    return 1;
+                                                })))));
 
         root.then(CommandManager.literal("wildcard")
                 .requires(source -> source.hasPermissionLevel(2))

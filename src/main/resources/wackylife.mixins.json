@@ -3,7 +3,10 @@
   "package": "bikerboys.wackylife.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ExampleMixin"
+    "MutableTextAccessor",
+    "PlayerEntityMixin",
+    "PlayerManagerMixin",
+    "ServerPlayNetworkHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

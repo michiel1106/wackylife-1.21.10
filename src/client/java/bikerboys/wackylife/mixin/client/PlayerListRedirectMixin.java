@@ -1,7 +1,6 @@
 package bikerboys.wackylife.mixin.client;
 
 import bikerboys.wackylife.*;
-import static bikerboys.wackylife.WackyLifeClient.ENTRY_CACHE;
 import com.mojang.authlib.*;
 import net.minecraft.client.*;
 import net.minecraft.client.network.*;
@@ -38,15 +37,9 @@ public abstract class PlayerListRedirectMixin extends PlayerEntity {
             var mappedName = map.get(realName);
             if (mappedName == null) return;
 
-            var cached = ENTRY_CACHE.get(realName);
-            if (cached != null) {
-                cir.setReturnValue(cached);
-                return;
-            }
 
             for (var entry : client.getNetworkHandler().getPlayerList()) {
                 if (entry.getProfile().name().equalsIgnoreCase(mappedName)) {
-                    ENTRY_CACHE.put(realName, entry);
                     cir.setReturnValue(entry);
                     return;
                 }

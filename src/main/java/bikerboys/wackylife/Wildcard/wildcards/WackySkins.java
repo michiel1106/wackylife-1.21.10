@@ -11,6 +11,7 @@ import java.util.*;
 public class WackySkins extends Wildcard {
     // actualname, changedname
     public Map<String, String> playerNameMap = new HashMap<>();
+    public boolean afterFirstSwap = false;
     public int tickDelay = 24000;
 
     @Override
@@ -33,6 +34,28 @@ public class WackySkins extends Wildcard {
     }
 
     @Override
+    public void onPlayerLeave(ServerPlayerEntity entity) {
+        MinecraftServer server = entity.getEntityWorld().getServer();
+        Map<String, String> tempMap = new HashMap<>();
+
+        List<String> playerNames = new ArrayList<>();
+        server.getPlayerManager().getPlayerList().forEach(player -> playerNames.add(player.getName().getString()));
+
+        for (String playerName : playerNames) {
+            tempMap.put(playerName, playerName);
+        }
+
+        ServerPlayNetworking.send(entity, new WackyPlayerMap(tempMap));
+
+
+    }
+
+    @Override
+    public String toString() {
+        return "Wacky Skins";
+    }
+
+    @Override
     public void deactivate(MinecraftServer server) {
         List<String> playerNames = new ArrayList<>();
         server.getPlayerManager().getPlayerList().forEach(player -> playerNames.add(player.getName().getString()));
@@ -43,9 +66,18 @@ public class WackySkins extends Wildcard {
 
         sendtoplayers(server);
 
+    }
 
+    @Override
+    public void onActivate(MinecraftServer server) {
+        List<String> playerNames = new ArrayList<>();
+        server.getPlayerManager().getPlayerList().forEach(player -> playerNames.add(player.getName().getString()));
 
+        for (String playerName : playerNames) {
+            playerNameMap.put(playerName, playerName);
+        }
 
+        sendtoplayers(server);
     }
 
     public void swapPlayerList(MinecraftServer server) {
@@ -69,6 +101,7 @@ public class WackySkins extends Wildcard {
                 playerNameMap.put(next, temp);
             }
         }
+        afterFirstSwap = true;
 
         sendtoplayers(server);
 

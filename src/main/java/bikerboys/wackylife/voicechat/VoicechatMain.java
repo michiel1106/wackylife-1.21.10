@@ -1,6 +1,9 @@
 package bikerboys.wackylife.voicechat;
 
+import bikerboys.wackylife.*;
+import bikerboys.wackylife.Wildcard.wildcards.*;
 import de.maxhenkel.voicechat.api.*;
+import de.maxhenkel.voicechat.api.audio.*;
 import de.maxhenkel.voicechat.api.events.*;
 import de.maxhenkel.voicechat.api.opus.*;
 import de.maxhenkel.voicechat.api.packets.*;
@@ -14,6 +17,7 @@ public class VoicechatMain implements VoicechatPlugin {
 
     private OpusEncoder encoder;
     private OpusDecoder decoder;
+    private AudioConverter audioConverter;
 
     @Override
     public String getPluginId() {
@@ -24,6 +28,8 @@ public class VoicechatMain implements VoicechatPlugin {
     public void initialize(VoicechatApi api) {
         this.encoder = api.createEncoder();
         this.decoder = api.createDecoder();
+        this.audioConverter = api.getAudioConverter();
+        DeepVoiceEffect.init(audioConverter);
     }
 
     @Override
@@ -45,37 +51,39 @@ public class VoicechatMain implements VoicechatPlugin {
 
     private void onAudioPacket(MicrophonePacketEvent event) {
 
-        VoicechatConnection senderConnection = event.getSenderConnection();
-        if (senderConnection == null) return;
+        if (WackyLife.wackyLife.getWildcardObj() != null && WackyLife.wackyLife.getWildcardObj() instanceof WackySkins wackySkins && wackySkins.afterFirstSwap) {
+            VoicechatConnection senderConnection = event.getSenderConnection();
+            if (senderConnection == null) return;
 
-        UUID senderUUID = senderConnection.getPlayer().getUuid();
-        MicrophonePacket originalPacket = event.getPacket();
-        byte[] opusData = originalPacket.getOpusEncodedData().clone();
+            UUID senderUUID = senderConnection.getPlayer().getUuid();
+            MicrophonePacket originalPacket = event.getPacket();
+            byte[] opusData = originalPacket.getOpusEncodedData().clone();
 
-        byte[] processedOpus = processOpusAudio(opusData);
+            byte[] processedOpus = processOpusAudio(opusData);
 
-        VoicechatServerApi api = event.getVoicechat();
-        for (UUID targetUUID : connectedPlayers) {
+            VoicechatServerApi api = event.getVoicechat();
+            for (UUID targetUUID : connectedPlayers) {
 
-            if (targetUUID.equals(senderUUID)) continue;
+                if (targetUUID.equals(senderUUID)) continue;
 
-            VoicechatConnection targetConnection = api.getConnectionOf(targetUUID);
-            if (targetConnection == null) continue;
+                VoicechatConnection targetConnection = api.getConnectionOf(targetUUID);
+                if (targetConnection == null) continue;
 
-            LocationalSoundPacket newPacket = originalPacket.locationalSoundPacketBuilder()
-                    .opusEncodedData(processedOpus)
-                    .position(api.createPosition(
-                            senderConnection.getPlayer().getPosition().getX(),
-                            senderConnection.getPlayer().getPosition().getY(),
-                            senderConnection.getPlayer().getPosition().getZ()
-                    ))
-                    .distance((float) api.getBroadcastRange())
-                    .build();
+                LocationalSoundPacket newPacket = originalPacket.locationalSoundPacketBuilder()
+                        .opusEncodedData(processedOpus)
+                        .position(api.createPosition(
+                                senderConnection.getPlayer().getPosition().getX(),
+                                senderConnection.getPlayer().getPosition().getY(),
+                                senderConnection.getPlayer().getPosition().getZ()
+                        ))
+                        .distance((float) api.getBroadcastRange())
+                        .build();
 
-            api.sendLocationalSoundPacketTo(targetConnection, newPacket);
+                api.sendLocationalSoundPacketTo(targetConnection, newPacket);
+            }
+
+            originalPacket.setOpusEncodedData(processedOpus);
         }
-
-        originalPacket.setOpusEncodedData(processedOpus);
     }
 
 

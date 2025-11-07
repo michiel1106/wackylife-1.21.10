@@ -33,13 +33,22 @@ public class WackySeries {
     public WackySeries() {
         ServerTickEvents.END_SERVER_TICK.register(this::tick);
         PlayerEvent.PLAYER_JOIN.register(this::playerJoin);
+        ServerPlayerEvents.LEAVE.register(this::playerLeave);
         EntityEvent.LIVING_DEATH.register(this::onPlayerDeath);
+    }
+
+    private void playerLeave(ServerPlayerEntity player) {
+        if (this.wildcard != null) {
+            this.wildcard.onPlayerLeave(player);
+        }
     }
 
     private void playerJoin(ServerPlayerEntity player) {
         if (this.wildcard != null) {
             this.wildcard.onPlayerJoin(player);
         }
+
+
     }
 
     public DeathsManager getDeathsManager() {
@@ -138,12 +147,24 @@ public class WackySeries {
             wildcard.tick(server);
         }
 
+        decrementTime(server);
+        updateData(server);
+    }
+
+    private void decrementTime(MinecraftServer server) {
         int time = ScoreboardManager.INSTANCE.getTime(server);
         if (time > 0) {
             ScoreboardManager.INSTANCE.decrementTime(server);
         } else if (time == 0){
             endSession(server);
         }
+
+    }
+
+
+
+    private void updateData(MinecraftServer server) {
+        List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
 
         for (ServerPlayerEntity player : players) {
             int lives = ScoreboardManager.INSTANCE.getLives(player, server);
@@ -169,7 +190,6 @@ public class WackySeries {
         }
 
 
-
     }
 
     private void endSession(MinecraftServer server) {
@@ -184,17 +204,20 @@ public class WackySeries {
     public void setWildcard(String wildcard, MinecraftServer server) {
         Wildcard wildcard1 = WildcardEnum.getWildcard(wildcard);
 
-        if (this.wildcard != null) {
+        if (this.wildcard != null && wildcard1 != null) {
             this.wildcard.deactivate(server);
         }
 
         if (wildcard1 != null) {
             this.wildcard = wildcard1;
+            this.wildcard.onActivate(server);
         }
     }
 
     public String getWildcard() {
         if (wildcard != null) {
+
+
             return wildcard.toString();
         }
         return null;
@@ -206,7 +229,6 @@ public class WackySeries {
         }
         return null;
     }
-
 
 
     public void onPlayerKill(PlayerEntity predator, PlayerEntity prey, MinecraftServer server) {

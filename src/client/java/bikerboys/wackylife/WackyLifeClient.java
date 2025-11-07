@@ -21,7 +21,6 @@ import java.util.*;
 public class WackyLifeClient implements ClientModInitializer {
 	public static List<String> playerNameList = new ArrayList<>();
 	public static Map<String, String> playerNameMap = new HashMap<>();
-	public static Map<String, PlayerListEntry> ENTRY_CACHE = new HashMap<>();
 
 	public static boolean wackySkinsActive = false;
 	public static int currentlives = -1;
@@ -38,6 +37,7 @@ public class WackyLifeClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+
 		ClientPlayNetworking.registerGlobalReceiver(AlivePlayerList.ID, ((alivePlayerList, context) -> {
 			WackyLifeClient.playerNameList = alivePlayerList.playerNames();
 		}));
@@ -49,8 +49,6 @@ public class WackyLifeClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(WackyPlayerMap.ID, ((WackyPlayerMap, context) -> {
 			WackyLifeClient.playerNameMap.clear();
 			WackyLifeClient.playerNameMap.putAll(WackyPlayerMap.players());
-
-			WackyLifeClient.ENTRY_CACHE.clear();
 		}));
 
 		ClientPlayNetworking.registerGlobalReceiver(LivesAmountUpdate.ID, ((livesAmountUpdate, context) -> {

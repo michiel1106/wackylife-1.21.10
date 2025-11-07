@@ -3,7 +3,7 @@ package bikerboys.wackylife.Wildcard;
 import net.minecraft.server.*;
 import net.minecraft.server.network.*;
 
-public class Wildcard {
+public abstract class Wildcard {
 
     public void tick(MinecraftServer server) {
 
@@ -17,4 +17,16 @@ public class Wildcard {
 
     }
 
+    public void onPlayerLeave(ServerPlayerEntity player) {
+
+    }
+
+    public void onActivate(MinecraftServer server) {
+
+    }
+
+
+
+    @Override
+    public abstract String toString();
 }
