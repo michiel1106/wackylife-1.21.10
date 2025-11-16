@@ -197,6 +197,12 @@ public class WackySeries {
         if (this.wildcard != null) {
             this.wildcard.deactivate(server);
         }
+
+        TitleS2CPacket titleS2CPacket = new TitleS2CPacket(Text.literal("End of session!").formatted(Formatting.GRAY));
+
+
+        server.getPlayerManager().sendToAll(titleS2CPacket);
+
         Constants.paused = true;
 
     }

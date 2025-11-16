@@ -4,6 +4,7 @@ import bikerboys.wackylife.commands.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.series.*;
 import bikerboys.wackylife.util.*;
+import bikerboys.wackylife.wyr.choice.*;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.command.argument.serialize.*;
@@ -28,6 +29,9 @@ public class WackyLife implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(WackyPlayerMap.ID, WackyPlayerMap.CODEC);
 		PayloadTypeRegistry.playS2C().register(WackySkinsActive.ID, WackySkinsActive.CODEC);
 
+
+		ChoiceRegistry.registerChoices();
+		ChoiceManager.register();
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			WackyCmdManager.register(dispatcher);

@@ -22,7 +22,17 @@ repositories {
 		name = "TarsosDSP repository"
 		url = "https://mvn.0110.be/releases"
 	}
+
+	maven {
+		url "https://cursemaven.com"
+	}
+
+	flatDir {
+		dirs 'libs'
+	}
 }
+
+
 
 loom {
 	splitEnvironmentSourceSets()
@@ -42,6 +52,7 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
+	modImplementation files("libs/file.jar")
 
 	modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-${project.voicechat_mod_version}"
 
@@ -50,7 +61,7 @@ dependencies {
 	modImplementation "curse.maven:architectury-api-419699:7149505"
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+
 }
 
 processResources {
