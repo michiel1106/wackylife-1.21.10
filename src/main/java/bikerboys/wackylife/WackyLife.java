@@ -1,5 +1,8 @@
 package bikerboys.wackylife;
 
+import bikerboys.wackylife.Wildcard.*;
+import bikerboys.wackylife.Wildcard.wildcards.*;
+import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.commands.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.series.*;
@@ -23,12 +26,22 @@ public class WackyLife implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ModAttachments.register();
 		PayloadTypeRegistry.playS2C().register(AlivePlayerList.ID, AlivePlayerList.CODEC);
 		PayloadTypeRegistry.playS2C().register(LivesAmountUpdate.ID, LivesAmountUpdate.CODEC);
 		PayloadTypeRegistry.playS2C().register(CurrentSessionTime.ID, CurrentSessionTime.CODEC);
 		PayloadTypeRegistry.playS2C().register(WackyPlayerMap.ID, WackyPlayerMap.CODEC);
 		PayloadTypeRegistry.playS2C().register(WackySkinsActive.ID, WackySkinsActive.CODEC);
 		PayloadTypeRegistry.playS2C().register(OpenChoicesScreen.ID, OpenChoicesScreen.CODEC);
+
+		PayloadTypeRegistry.playC2S().register(SendChoices.ID, SendChoices.CODEC);
+
+		ServerPlayNetworking.registerGlobalReceiver(SendChoices.ID, ((sendChoices, context) -> {
+			Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+			if (wildcardObj instanceof Choices choices) {
+				choices.playerChose(context.player(), sendChoices.choices());
+			}
+		}));
 
 
 		ChoiceRegistry.registerChoices();

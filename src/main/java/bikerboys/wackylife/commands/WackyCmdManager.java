@@ -170,6 +170,43 @@ public class WackyCmdManager {
                                             return time;
                                         }))))));
 
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("choices")
+                        .then(CommandManager.literal("sendchoices")
+                                .executes(context -> {
+                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                    if (wildcardObj instanceof Choices choices) {
+                                        choices.sendChoices(context.getSource().getServer());
+                                    }
+
+                                    return 1;
+                                }))
+                        .then(CommandManager.literal("time")
+                                .executes(context -> {
+                                    if (WackyLife.wackyLife.getWildcardObj() instanceof Choices choices) {
+                                        context.getSource().getPlayer().sendMessage(Text.literal("Current cooldown for the next choosing: " + choices.tickDelay));
+                                    } else {
+                                        context.getSource().getPlayer().sendMessage(Text.literal("Current wildcard isnt choices/would you rather or isnt activated. Please activate it first."));
+                                    }
+                                    return 1;
+                                })
+                                .then(CommandManager.literal("set")
+                                        .then(CommandManager.argument("time", IntegerArgumentType.integer())
+                                                .executes(context -> {
+                                                    int time = IntegerArgumentType.getInteger(context, "time");
+
+                                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                                    if (wildcardObj instanceof Choices choices) {
+                                                        choices.tickDelay = time;
+                                                    }
+
+
+                                                    return time;
+                                                }))))));
+
+
         root.then(CommandManager.literal("wildcard")
                 .requires(source -> source.hasPermissionLevel(2))
                 .then(CommandManager.literal("get")

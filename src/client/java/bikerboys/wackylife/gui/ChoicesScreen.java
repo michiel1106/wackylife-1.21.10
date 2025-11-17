@@ -1,7 +1,9 @@
 package bikerboys.wackylife.gui;
 
 
+import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.wyr.choice.*;
+import net.fabricmc.fabric.api.client.networking.v1.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gl.*;
 import net.minecraft.client.gui.DrawContext;
@@ -78,7 +80,8 @@ public class ChoicesScreen extends Screen {
 
     protected void onConfirm() {
         if (this.selectedChoice) {
-            //ChooseChoiceC2SPacket.send(this.selectedLeft);
+            ChoicePair selectedPair = this.selectedLeft ? this.firstChoicePair : this.secondChoicePair;
+            ClientPlayNetworking.send(new SendChoices(selectedPair));
             this.close();
         }
 

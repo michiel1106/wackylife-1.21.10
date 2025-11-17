@@ -69,6 +69,7 @@ public class ChoiceListWidget implements Drawable, Widget {
                 context.getMatrices().pushMatrix();
                 context.getMatrices().translate((float) this.x, (float) minY + (float) i * spacing);
                 entry.render(context, time);
+
                 context.getMatrices().popMatrix();
             }
 
@@ -121,7 +122,7 @@ public class ChoiceListWidget implements Drawable, Widget {
         private final boolean positive;
         private float prevX = 0.0F;
         private float prevY = 0.0F;
-        private EntryState state;
+        public EntryState state;
         private int tick;
         private final TextRenderer textRenderer;
 
@@ -154,12 +155,20 @@ public class ChoiceListWidget implements Drawable, Widget {
         }
 
         public void render(DrawContext context, float time) {
-            context.getMatrices().translate(this.lerpX(time), this.lerpY(time), context.getMatrices());
-            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.positive ? ChoiceListWidget.POSITIVE_TEXTURE : ChoiceListWidget.NEGATIVE_TEXTURE, 128, 128, 0, 0, 0, 0, 109, 57);
-            this.text.draw(context, MultilineText.Alignment.CENTER, 55, 3, 0, true, 0xFFFFFFFF);
+            context.getMatrices().translate(this.lerpX(time), this.lerpY(time));
+            context.drawGuiTexture(
+                    RenderPipelines.GUI_TEXTURED,
+                    this.positive ? POSITIVE_TEXTURE : NEGATIVE_TEXTURE,
+                    128, 128,
+                    0, 0,
+                    0, 0,
+                    109, 57
+            );
+            this.text.draw(context, MultilineText.Alignment.CENTER, 55, 3, 9, true, 0xFFFFFFFF);
             if (this.countText != null) {
                 this.textRenderer.getWidth(this.countText);
                 context.drawText(this.textRenderer, this.countText, 107 - this.textRenderer.getWidth(this.countText), 48, 16777215, true);
+
             }
 
         }

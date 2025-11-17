@@ -6,7 +6,9 @@
     "GameRendererMixin",
     "PlayerEntityRendererMixin",
     "PlayerListHudMixin",
-    "PlayerListRedirectMixin"
+    "PlayerListRedirectMixin",
+    "choices.CreativeInventoryScreenMixin",
+    "choices.InventoryScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1
