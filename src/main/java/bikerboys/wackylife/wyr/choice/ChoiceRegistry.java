@@ -1,6 +1,7 @@
 package bikerboys.wackylife.wyr.choice;
 
-import bikerboys.wackylife.wyr.actualchoicesfr.*;
+import bikerboys.wackylife.wyr.actualchoicesfr.negative.*;
+import bikerboys.wackylife.wyr.actualchoicesfr.positive.*;
 
 import java.util.*;
 import java.util.stream.*;
@@ -9,10 +10,35 @@ public class ChoiceRegistry {
 
     private static final Map<String, Choice> CHOICES = new HashMap<>();
 
+    private static final List<Choice> POSITIVE_CHOICES = new ArrayList<>();
+    private static final List<Choice> NEGATIVE_CHOICES = new ArrayList<>();
+    private static final Random RANDOM = new Random();
+
     public static void registerChoices() {
-        register(new JumpBoostChoice());
+        register(new JumpBoostChoice(true));
+        register(new HigherStepSize(true));
+
+        register(new SmallerSize(false));
+        register(new SlownessChoice(false));
+
+
         register(new Choice("empty_pos", true));
         register(new Choice("empty_neg", false));
+
+
+        POSITIVE_CHOICES.clear();
+        NEGATIVE_CHOICES.clear();
+        for (Choice choice : CHOICES.values()) {
+            if (choice.isPositive()) {
+                if (!choice.getId().equals("empty_pos")) {
+                    POSITIVE_CHOICES.add(choice);
+                }
+            } else {
+                if (!choice.getId().equals("empty_neg")) {
+                    NEGATIVE_CHOICES.add(choice);
+                }
+            }
+        }
 
     }
 
@@ -62,6 +88,37 @@ public class ChoiceRegistry {
                 .filter(choice -> !choice.isPositive())
                 .map(Choice::getId)
                 .collect(Collectors.toSet());
+    }
+
+
+    public static List<ChoicePair> getRandomChoicePairs() {
+        // --- Safety Check ---
+        // We need at least 2 of each type to provide unique pairs.
+        if (POSITIVE_CHOICES.size() < 2 || NEGATIVE_CHOICES.size() < 2) {
+            System.err.println("WackyLife Error: Not enough choices registered to create 2 unique pairs!");
+            // Return an empty list to prevent a crash
+            return Collections.emptyList();
+        }
+
+        // --- Get 2 unique positive choices ---
+        Choice pos1 = POSITIVE_CHOICES.get(RANDOM.nextInt(POSITIVE_CHOICES.size()));
+        Choice pos2;
+        do {
+            pos2 = POSITIVE_CHOICES.get(RANDOM.nextInt(POSITIVE_CHOICES.size()));
+        } while (pos1.equals(pos2)); // Ensure they are not the same
+
+        // --- Get 2 unique negative choices ---
+        Choice neg1 = NEGATIVE_CHOICES.get(RANDOM.nextInt(NEGATIVE_CHOICES.size()));
+        Choice neg2;
+        do {
+            neg2 = NEGATIVE_CHOICES.get(RANDOM.nextInt(NEGATIVE_CHOICES.size()));
+        } while (neg1.equals(neg2)); // Ensure they are not the same
+
+        // --- Create and return the pairs ---
+        ChoicePair pair1 = new ChoicePair(pos1.getId(), neg1.getId());
+        ChoicePair pair2 = new ChoicePair(pos2.getId(), neg2.getId());
+
+        return Arrays.asList(pair1, pair2);
     }
 
     // Example of how you would register choices in your main mod class:

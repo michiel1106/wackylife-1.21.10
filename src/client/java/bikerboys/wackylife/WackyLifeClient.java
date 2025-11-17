@@ -1,26 +1,35 @@
 package bikerboys.wackylife;
 
+import bikerboys.wackylife.gui.*;
 import bikerboys.wackylife.networking.*;
+import bikerboys.wackylife.wyr.choice.*;
 import com.mojang.authlib.minecraft.client.*;
 import com.mojang.brigadier.arguments.*;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.*;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.*;
+import net.fabricmc.fabric.api.client.keybinding.v1.*;
 import net.fabricmc.fabric.api.client.networking.v1.*;
 import net.fabricmc.fabric.api.client.rendering.v1.*;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.*;
+import net.fabricmc.fabric.impl.screenhandler.client.*;
 import net.fabricmc.loader.api.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.*;
 import net.minecraft.client.network.*;
+import net.minecraft.client.option.*;
+import net.minecraft.client.util.*;
 import net.minecraft.server.command.*;
 import net.minecraft.util.math.*;
+import org.lwjgl.glfw.*;
 
 import java.util.*;
 
 public class WackyLifeClient implements ClientModInitializer {
 	public static List<String> playerNameList = new ArrayList<>();
 	public static Map<String, String> playerNameMap = new HashMap<>();
+	private static final ClientTicker CLIENT_TICKER;
+
 
 	public static boolean wackySkinsActive = false;
 	public static int currentlives = -1;
@@ -34,9 +43,19 @@ public class WackyLifeClient implements ClientModInitializer {
 	public static float crosshairy = 0;
 	public static float crosshairz = 0;
 
+	static {
+		CLIENT_TICKER = new ClientTicker();
+	}
+
+	public static int getTick() {
+		return CLIENT_TICKER.tick;
+	}
 
 	@Override
 	public void onInitializeClient() {
+		ClientPlayNetworking.registerGlobalReceiver(OpenChoicesScreen.ID, ((openChoicesScreen, context) -> {
+			context.client().setScreen(new ChoicesScreen(openChoicesScreen.choices().getFirst(), openChoicesScreen.choices().getLast()));
+		}));
 
 		ClientPlayNetworking.registerGlobalReceiver(AlivePlayerList.ID, ((alivePlayerList, context) -> {
 			WackyLifeClient.playerNameList = alivePlayerList.playerNames();
@@ -132,5 +151,24 @@ public class WackyLifeClient implements ClientModInitializer {
 			crosshairz = z1;
 			return 0;
 		}))));
+	}
+
+
+
+
+
+	static class ClientTicker implements ClientTickEvents.EndTick {
+		private int tick;
+		private boolean hadRandomShaders;
+		private boolean hadUnsupportedTransparency;
+
+		ClientTicker() {
+		}
+
+		public void onEndTick(MinecraftClient client) {
+
+
+			++this.tick;
+		}
 	}
 }

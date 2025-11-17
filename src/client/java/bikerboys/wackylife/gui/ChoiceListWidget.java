@@ -4,14 +4,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import bikerboys.wackylife.*;
 import bikerboys.wackylife.wyr.choice.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.MultilineText;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.Drawable;
-import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.ScreenRect;
+import net.minecraft.client.gl.*;
+import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.navigation.*;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.Widget;
@@ -24,7 +23,7 @@ import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 
 
-public class ChoiceListWidget implements Drawable, Element, Widget {
+public class ChoiceListWidget implements Drawable, Widget {
     public static final Identifier POSITIVE_TEXTURE = Identifier.of("wackylife:choices/choice_background_positive");
     public static final Identifier NEGATIVE_TEXTURE = Identifier.of("wackylife:choices/choice_background_negative");
     private int x;
@@ -47,34 +46,34 @@ public class ChoiceListWidget implements Drawable, Element, Widget {
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         if (this.entries.isEmpty()) {
-            this.prevTick = ModClient.getTick();
+            this.prevTick = WackyLifeClient.getTick();
             this.prevMouseIndex = -1;
         } else {
             boolean hovered = mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.getWidth() && mouseY < this.getY() + this.getHeight();
-            int tick = ModClient.getTick();
+            int tick = WackyLifeClient.getTick();
             boolean newTick = tick != this.prevTick;
-            float tickDelta = MinecraftClient.getInstance().method_1488();
-            float time = tickDelta + (float)tick;
+            float tickDelta = MinecraftClient.getInstance().getRenderTickCounter().getDynamicDeltaTicks();
+            float time = tickDelta + (float) tick;
             int size = this.entries.size();
             int totalHeight = Math.min(size * 24, this.height / 2);
-            float spacing = (float)totalHeight / (float)size;
+            float spacing = (float) totalHeight / (float) size;
             int minY = this.height / 2 - totalHeight / 2 - 29;
-            int mouseIndex = MathHelper.clamp((int)((float)(mouseY - minY) / spacing), 0, size - 1);
+            int mouseIndex = MathHelper.clamp((int) ((float) (mouseY - minY) / spacing), 0, size - 1);
 
-            for(int i = 0; i < size; ++i) {
-                Entry entry = (Entry)this.entries.get(i);
+            for (int i = 0; i < size; ++i) {
+                Entry entry = (Entry) this.entries.get(i);
                 if (newTick && size > 1) {
                     entry.update(time, mouseIndex == i && hovered ? ChoiceListWidget.EntryState.HOVER : ChoiceListWidget.EntryState.NONE);
                 }
 
                 context.getMatrices().pushMatrix();
-                context.getMatrices().translate((float)this.x, (float)minY + (float)i * spacing, (float)i);
+                context.getMatrices().translate((float) this.x, (float) minY + (float) i * spacing);
                 entry.render(context, time);
                 context.getMatrices().popMatrix();
             }
 
             if (hovered && mouseIndex != this.prevMouseIndex) {
-                MinecraftClient.getInstance().getSoundManager().method_4873(PositionedSoundInstance.master(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F));
+                MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.ENTITY_ITEM_FRAME_ROTATE_ITEM, 2.0F));
             }
 
             this.prevMouseIndex = hovered ? mouseIndex : -1;
@@ -155,12 +154,12 @@ public class ChoiceListWidget implements Drawable, Element, Widget {
         }
 
         public void render(DrawContext context, float time) {
-            context.getMatrices().translate(this.lerpX(time), this.lerpY(time), 0.0F);
-            context.method_52708(this.positive ? ChoiceListWidget.POSITIVE_TEXTURE : ChoiceListWidget.NEGATIVE_TEXTURE, 128, 128, 0, 0, 0, 0, 109, 57);
-            this.text.method_30888(context, 55, 3);
+            context.getMatrices().translate(this.lerpX(time), this.lerpY(time), context.getMatrices());
+            context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, this.positive ? ChoiceListWidget.POSITIVE_TEXTURE : ChoiceListWidget.NEGATIVE_TEXTURE, 128, 128, 0, 0, 0, 0, 109, 57);
+            this.text.draw(context, MultilineText.Alignment.CENTER, 55, 3, 0, true, 0xFFFFFFFF);
             if (this.countText != null) {
                 this.textRenderer.getWidth(this.countText);
-                context.method_51439(this.textRenderer, this.countText, 107 - this.textRenderer.getWidth(this.countText), 48, 16777215, true);
+                context.drawText(this.textRenderer, this.countText, 107 - this.textRenderer.getWidth(this.countText), 48, 16777215, true);
             }
 
         }

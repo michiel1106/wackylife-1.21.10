@@ -1,4 +1,4 @@
-package bikerboys.wackylife.wyr.actualchoicesfr;
+package bikerboys.wackylife.wyr.actualchoicesfr.positive;
 
 import bikerboys.wackylife.wyr.choice.*;
 import net.minecraft.entity.player.*;
@@ -7,8 +7,8 @@ import net.minecraft.text.*;
 import net.minecraft.world.*;
 
 public class JumpBoostChoice extends Choice {
-    public JumpBoostChoice() {
-        super("jump_boost", true);
+    public JumpBoostChoice(boolean positive) {
+        super("jump_boost", positive);
     }
 
     @Override
@@ -27,4 +27,6 @@ public class JumpBoostChoice extends Choice {
 
         player.sendMessage(Text.literal("jumpboostactive " + data.getInt("data").get()), true);
     }
+
+
 }
