@@ -6,7 +6,9 @@
     "MutableTextAccessor",
     "PlayerEntityMixin",
     "PlayerManagerMixin",
-    "ServerPlayNetworkHandlerMixin"
+    "ServerPlayNetworkHandlerMixin",
+    "choice.HungerManagerMixin",
+    "choice.PhantomSpawnerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -15,11 +15,25 @@ public class ChoiceRegistry {
     private static final Random RANDOM = new Random();
 
     public static void registerChoices() {
-        register(new JumpBoostChoice(true));
-        register(new HigherStepSize(true));
+        // 4/30 - positive
+        // 6/30 - negative
 
-        register(new SmallerSize(false));
-        register(new SlownessChoice(false));
+
+        register(new Choice("double_mob_drops", true));
+        register(new Choice("no_fire_damage", true));
+        register(new ExtraHeart("extra_heart", true)); // done
+        register(new Choice("instant_bonemeal", true));
+
+
+
+        register(new Choice("always_phantom", false)); // done
+        register(new Choice("double_hunger_drain", false)); // done
+        register(new AggressiveEnderman("aggressive_enderman", false)); // done
+        register(new OccasionalDrops("occasional_drops", false)); // done
+        register(new Choice("random_sprint", false));
+        register(new Choice("thick_fog", false));
+
+
 
 
         register(new Choice("empty_pos", true));
