@@ -19,10 +19,10 @@ public class ChoiceRegistry {
         // 6/30 - negative
 
 
-        register(new Choice("double_mob_drops", true));
-        register(new Choice("no_fire_damage", true));
+        register(new Choice("double_mob_drops", true)); // done
+        register(new Choice("no_fire_damage", true)); // done
         register(new ExtraHeart("extra_heart", true)); // done
-        register(new Choice("instant_bonemeal", true));
+        register(new Choice("instant_bonemeal", true)); // done
 
 
 
@@ -30,8 +30,8 @@ public class ChoiceRegistry {
         register(new Choice("double_hunger_drain", false)); // done
         register(new AggressiveEnderman("aggressive_enderman", false)); // done
         register(new OccasionalDrops("occasional_drops", false)); // done
-        register(new Choice("random_sprint", false));
-        register(new Choice("thick_fog", false));
+        register(new RandomSprint("random_sprint", false)); // done
+        register(new Choice("thick_fog", false)); // done
 
 
 

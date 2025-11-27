@@ -67,6 +67,12 @@ public class WackyLifeClient implements ClientModInitializer {
 			wackySkinsActive = wackySkinsActive1.active();
 		}));
 
+		ClientPlayNetworking.registerGlobalReceiver(DropItemS2C.ID, ((dropItemS2C, context) -> {
+            if (MinecraftClient.getInstance().player != null) {
+                MinecraftClient.getInstance().player.dropSelectedItem(true);
+            }
+        }));
+
 		ClientPlayNetworking.registerGlobalReceiver(WackyPlayerMap.ID, ((WackyPlayerMap, context) -> {
 			WackyLifeClient.playerNameMap.clear();
 			WackyLifeClient.playerNameMap.putAll(WackyPlayerMap.players());
@@ -75,6 +81,13 @@ public class WackyLifeClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(LivesAmountUpdate.ID, ((livesAmountUpdate, context) -> {
 			WackyLifeClient.currentlives = livesAmountUpdate.integer();
 		}));
+
+		ClientPlayNetworking.registerGlobalReceiver(RandomSprintS2C.ID, ((randomSprintS2C, context) -> {
+			boolean sprint = randomSprintS2C.sprint();
+            if (MinecraftClient.getInstance().player != null) {
+                MinecraftClient.getInstance().player.setSprinting(!sprint);
+            }
+        }));
 
 		ClientPlayNetworking.registerGlobalReceiver(CurrentSessionTime.ID, ((currentSessionTime, context) -> {
 			WackyLifeClient.currentsessiontime = currentSessionTime.integer();

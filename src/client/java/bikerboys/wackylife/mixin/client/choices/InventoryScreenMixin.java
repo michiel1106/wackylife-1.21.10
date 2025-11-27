@@ -39,8 +39,10 @@ public abstract class InventoryScreenMixin extends RecipeBookScreen<PlayerScreen
             Choice negativeChoice = ChoiceRegistry.get(negativeChoiceId);
             Choice positiveChoice = ChoiceRegistry.get(positiveChoiceId);
 
-            Collection<Choice> choiceInstances = client != null && client.player != null && attached != null ? List.of(positiveChoice, negativeChoice) : List.of();
-            addDrawable(new ChoiceListWidget(0, 0, height, textRenderer, choiceInstances));
+            if (negativeChoice != null && positiveChoice != null) {
+                Collection<Choice> choiceInstances = client != null && client.player != null && attached != null ? List.of(positiveChoice, negativeChoice) : List.of();
+                addDrawable(new ChoiceListWidget(0, 0, height, textRenderer, choiceInstances));
+            }
         }
     }
 }

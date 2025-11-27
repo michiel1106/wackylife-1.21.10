@@ -1,30 +1,100 @@
 package bikerboys.wackylife.wyr.choice;
 
 import bikerboys.wackylife.attachements.*;
+import dev.architectury.event.*;
+import dev.architectury.event.events.common.*;
+import dev.architectury.event.events.common.BlockEvent;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
+import net.minecraft.block.*;
+import net.minecraft.entity.*;
+import net.minecraft.entity.damage.*;
 import net.minecraft.entity.player.*;
 import net.minecraft.nbt.*;
+import net.minecraft.registry.tag.*;
 import net.minecraft.server.*;
 import net.minecraft.server.network.*;
+import net.minecraft.server.world.*;
+import net.minecraft.util.math.*;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.*;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 
 public class ChoiceManager {
-
-    // --- REGISTRATION AND TICKING ---
-
+    private static final List<ScheduledGrow> growTasks = new ArrayList<>();
     /**
      * Register this in your mod's main initializer to start the ticking.
      */
     public static void register() {
         ServerTickEvents.END_SERVER_TICK.register(ChoiceManager::onServerTick);
+        BlockEvent.PLACE.register(ChoiceManager::onPlaceBlock);
+        EntityEvent.LIVING_HURT.register(ChoiceManager::onDamage);
+
     }
+
+    private static EventResult onDamage(LivingEntity entity, DamageSource damageSource, float v) {
+
+        if (!entity.getEntityWorld().isClient()) {
+            if (entity instanceof PlayerEntity player) {
+                if (ModAttachments.getChoice(player).positiveChoiceId().equalsIgnoreCase("no_fire_damage")) {
+                    if (damageSource.isOf(DamageTypes.ON_FIRE) || damageSource.isIn(DamageTypeTags.IS_FIRE)) {
+                        return EventResult.interruptFalse();
+                    }
+
+
+                }
+
+            }
+        }
+
+        return EventResult.pass();
+    }
+
+    private static EventResult onPlaceBlock(World world, BlockPos pos, BlockState state, @Nullable Entity entity) {
+        if (!world.isClient()) {
+            if (entity instanceof PlayerEntity player) {
+                if (ModAttachments.getChoice(player).positiveChoiceId().equalsIgnoreCase("instant_bonemeal")) {
+                    if (world instanceof ServerWorld serverWorld) {
+                        growTasks.add(new ScheduledGrow(serverWorld, pos, 1));
+                    }
+                }
+            }
+        }
+        return EventResult.pass();
+    }
+
 
     /**
      * Called every server tick. Loops over all players.
      */
     private static void onServerTick(MinecraftServer server) {
+        Iterator<ScheduledGrow> iterator = growTasks.iterator();
+        while (iterator.hasNext()) {
+            ScheduledGrow task = iterator.next();
+            ServerWorld world = task.world;
+            BlockState state = world.getBlockState(task.pos);
+            try {
+                if (state.getBlock() instanceof Fertilizable fertilizable) {
+                    for (int i = 0; i < 15; i++) {
+                        BlockState currentState = world.getBlockState(task.pos);
+                        if (fertilizable.isFertilizable(world, task.pos, currentState) && fertilizable.canGrow(world, world.random, task.pos, currentState)) {
+                            fertilizable.grow(world, world.random, task.pos, currentState);
+
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+                task.remaining--;
+                if (task.remaining <= 0) {
+                    iterator.remove();
+                }
+            } catch (Exception ignored) {
+
+            }
+        }
+
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             tickPlayer(player);
         }
@@ -151,5 +221,19 @@ public class ChoiceManager {
 
         // 3. Set the attachment to the DEFAULT (empty) state
         player.setAttached(ModAttachments.CHOICE_ATTACHMENT, ChoiceAttachment.DEFAULT);
+    }
+
+
+
+    private static class ScheduledGrow {
+        final ServerWorld world;
+        final BlockPos pos;
+        int remaining;
+
+        ScheduledGrow(ServerWorld world, BlockPos pos, int remaining) {
+            this.world = world;
+            this.pos = pos.toImmutable();
+            this.remaining = remaining;
+        }
     }
 }

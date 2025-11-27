@@ -33,6 +33,8 @@ public class WackyLife implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(WackyPlayerMap.ID, WackyPlayerMap.CODEC);
 		PayloadTypeRegistry.playS2C().register(WackySkinsActive.ID, WackySkinsActive.CODEC);
 		PayloadTypeRegistry.playS2C().register(OpenChoicesScreen.ID, OpenChoicesScreen.CODEC);
+		PayloadTypeRegistry.playS2C().register(DropItemS2C.ID, DropItemS2C.CODEC);
+		PayloadTypeRegistry.playS2C().register(RandomSprintS2C.ID, RandomSprintS2C.CODEC);
 
 		PayloadTypeRegistry.playC2S().register(SendChoices.ID, SendChoices.CODEC);
 

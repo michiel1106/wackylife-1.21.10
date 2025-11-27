@@ -8,6 +8,7 @@
     "PlayerManagerMixin",
     "ServerPlayNetworkHandlerMixin",
     "choice.HungerManagerMixin",
+    "choice.LivingEntityMixin",
     "choice.PhantomSpawnerMixin"
   ],
   "injectors": {
