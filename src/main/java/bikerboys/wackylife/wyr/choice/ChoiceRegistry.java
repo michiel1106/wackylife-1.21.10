@@ -23,6 +23,12 @@ public class ChoiceRegistry {
         register(new Choice("no_fire_damage", true)); // done
         register(new ExtraHeart("extra_heart", true)); // done
         register(new Choice("instant_bonemeal", true)); // done
+        register(new InstantBreeding("instant_breeding", true)); // done
+        register(new FasterSwimming("faster_swimming", true)); // done
+        register(new LessFallDamage("reduced_fall_damage", true)); // done
+        register(new Choice("faster_ladder_climbing", true)); // done
+        register(new Choice("faster_furnaces", true)); // done
+        register(new Choice("faster_eating", true)); // done
 
 
 
