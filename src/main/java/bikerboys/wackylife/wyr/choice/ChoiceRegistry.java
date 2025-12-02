@@ -38,6 +38,7 @@ public class ChoiceRegistry {
         register(new OccasionalDrops("occasional_drops", false)); // done
         register(new RandomSprint("random_sprint", false)); // done
         register(new Choice("thick_fog", false)); // done
+        register(new Choice("no_water_collision", false));
 
 
 
