@@ -30,6 +30,8 @@ public class ChoiceManager {
         ServerTickEvents.END_SERVER_TICK.register(ChoiceManager::onServerTick);
         BlockEvent.PLACE.register(ChoiceManager::onPlaceBlock);
         EntityEvent.LIVING_HURT.register(ChoiceManager::onDamage);
+        
+
 
     }
 
@@ -61,6 +63,42 @@ public class ChoiceManager {
                 }
             }
         }
+
+
+        if (entity != null) {
+            if (entity instanceof PlayerEntity player) {
+                if (ModAttachments.getChoice(player).negativeChoiceId().equalsIgnoreCase("randomblockplace")) {
+                    if (player.getRandom().nextBetween(1, 50) == 1) {
+                        var list = new ArrayList<BlockPos>();
+
+                        for (Direction value : Direction.values()) {
+                            BlockPos offset = pos.offset(value);
+                            if (state.canPlaceAt(world, offset) && world.getBlockState(offset).isAir()) {
+                                    list.add(offset);
+                            }
+
+                        }
+
+
+                        if (!list.isEmpty()) {
+                            BlockPos pos1 = list.get(player.getRandom().nextInt(list.size()));
+
+
+                            world.setBlockState(pos1, state);
+
+                            return EventResult.interruptFalse();
+                        }
+
+                    }
+
+                }
+            }
+        }
+
+
+
+
+
         return EventResult.pass();
     }
 

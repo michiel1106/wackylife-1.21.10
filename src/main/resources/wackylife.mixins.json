@@ -12,7 +12,8 @@
     "choice.HungerManagerMixin",
     "choice.ItemMixin",
     "choice.LivingEntityMixin",
-    "choice.PhantomSpawnerMixin"
+    "choice.PhantomSpawnerMixin",
+    "choice.SheepEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

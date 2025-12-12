@@ -1,7 +1,16 @@
 package bikerboys.wackylife.wyr.choice;
 
+import bikerboys.wackylife.wyr.actualchoicesfr.choiceTemplates.*;
 import bikerboys.wackylife.wyr.actualchoicesfr.negative.*;
 import bikerboys.wackylife.wyr.actualchoicesfr.positive.*;
+import net.minecraft.block.*;
+import net.minecraft.entity.attribute.*;
+import net.minecraft.entity.damage.*;
+import net.minecraft.entity.effect.*;
+import net.minecraft.entity.player.*;
+import net.minecraft.item.*;
+import net.minecraft.server.world.*;
+import net.minecraft.util.math.*;
 
 import java.util.*;
 import java.util.stream.*;
@@ -15,9 +24,8 @@ public class ChoiceRegistry {
     private static final Random RANDOM = new Random();
 
     public static void registerChoices() {
-        // 4/30 - positive
-        // 6/30 - negative
-
+        // 18/30 - positive done
+        // 22/30 - negative done
 
         register(new Choice("double_mob_drops", true)); // done
         register(new Choice("no_fire_damage", true)); // done
@@ -29,8 +37,14 @@ public class ChoiceRegistry {
         register(new Choice("faster_ladder_climbing", true)); // done
         register(new Choice("faster_furnaces", true)); // done
         register(new Choice("faster_eating", true)); // done
-
-
+        register(new Shorter("shorter", true)); // done
+        register(new MoreKnockback("moreknockback", true)); // done
+        register(new Choice("infinite_shearing", true)); // done
+        register(new MaxDurability("max_durability", true)); // done
+        register(new OnAddChoice("receivemace", true, (player, world, data) -> player.giveOrDropStack(new ItemStack(Items.MACE)))); // done
+        register(new SetAttributeChoice("stepheight", true, EntityAttributes.STEP_HEIGHT, 1.1d)); // done
+        register(new PotionEffectChoice("slowfalling", true, StatusEffects.SLOW_FALLING, (player -> player.fallDistance >= 5))); // done
+        register(new OnAddChoice("receivetotem", true, (player, world, data) -> player.giveOrDropStack(new ItemStack(Items.TOTEM_OF_UNDYING)))); // done
 
         register(new Choice("always_phantom", false)); // done
         register(new Choice("double_hunger_drain", false)); // done
@@ -38,9 +52,26 @@ public class ChoiceRegistry {
         register(new OccasionalDrops("occasional_drops", false)); // done
         register(new RandomSprint("random_sprint", false)); // done
         register(new Choice("thick_fog", false)); // done
-        register(new Choice("no_water_collision", false));
-
-
+        register(new Choice("no_water_collision", false)); // done
+        register(new RandomBlockPlace("randomblockplace", false)); // done
+        register(new LowerJumpHeight("lowerjump", false)); // done
+        register(new SilverFishSpawn("silverfishspawn", false)); // done
+        register(new HigherAttackCooldown("higherattackcooldown", false)); // done
+        register(new NoArmorAboveDiamond("noarmorabovediamond", false)); // done
+        register(new ImmediateBoatSink("immediatesink", false)); // done
+        register(new Choice("hotbarfov", false)); // done
+        register(new Choice("hiddenhealth", false)); // done
+        register(new Explosion("explode", false)); // done
+        register(new Choice("offsetcrosshair", false)); // done
+        register(new SimpleTickChoice("cantuseshield", false, ((player, world, nbtCompound) -> {
+            if (player.getMainHandStack().isOf(Items.SHIELD)) {player.getMainHandStack().decrement(1);player.dropStack((ServerWorld) world, new ItemStack(Items.SHIELD));}
+            if (player.getOffHandStack().isOf(Items.SHIELD)) {player.getOffHandStack().decrement(1);player.dropStack((ServerWorld) world, new ItemStack(Items.SHIELD));}
+        }))); // done
+        register(new PotionEffectChoice("glowingeffect", false, StatusEffects.GLOWING, (player) -> true)); // done
+        register(new SimpleTickChoice("waterhurts", false, ((player, world, nbtCompound) -> {if (player.isTouchingWaterOrRain()) {player.damage((ServerWorld) world, player.getDamageSources().magic(), 2.0f);}}))); // done
+        register(new SimpleTickChoice("rainhurts", false, ((player, world, nbtCompound) -> {if (isBeingRainedOn(player)) {player.damage((ServerWorld) world, player.getDamageSources().magic(), 2.0f);}}))); // done
+        register(new SimpleTickChoice("grasshurts", false, ((player, world, nbtCompound) -> {if (player.getSteppingBlockState().isOf(Blocks.GRASS_BLOCK)) {player.damage((ServerWorld) world, player.getDamageSources().magic(), 2.0f);}}))); // done
+        register(new SimpleTickChoice("burnindaylight", false, ((player, world, nbtCompound) -> {if (player.getEntityWorld().isSkyVisible(player.getBlockPos()) && player.getEntityWorld().isDay()) {player.damage((ServerWorld) world, player.getDamageSources().onFire(), 2.0f); player.setOnFireFor(4.5f);}}))); // done
 
 
         register(new Choice("empty_pos", true));
@@ -63,6 +94,12 @@ public class ChoiceRegistry {
 
     }
 
+
+    static boolean isBeingRainedOn(PlayerEntity player) {
+        BlockPos blockPos = player.getBlockPos();
+        return player.getEntityWorld().hasRain(blockPos)
+                || player.getEntityWorld().hasRain(BlockPos.ofFloored(blockPos.getX(), player.getBoundingBox().maxY, blockPos.getZ()));
+    }
 
 
     /**

@@ -7,8 +7,9 @@
     "PlayerEntityRendererMixin",
     "PlayerListHudMixin",
     "PlayerListRedirectMixin",
-    "choices.GameOptionsMixin",
     "choices.CreativeInventoryScreenMixin",
+    "choices.GameOptionsMixin",
+    "choices.HudMixin",
     "choices.InventoryScreenMixin"
   ],
   "injectors": {

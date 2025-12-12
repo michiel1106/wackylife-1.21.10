@@ -4,6 +4,7 @@ import bikerboys.wackylife.*;
 import static bikerboys.wackylife.WackyLifeClient.x;
 import static bikerboys.wackylife.WackyLifeClient.y;
 import static bikerboys.wackylife.WackyLifeClient.z;
+import bikerboys.wackylife.attachements.*;
 import net.minecraft.client.*;
 import net.minecraft.client.render.*;
 import net.minecraft.entity.*;
@@ -11,11 +12,8 @@ import net.minecraft.entity.projectile.*;
 import net.minecraft.predicate.entity.*;
 import net.minecraft.util.hit.*;
 import net.minecraft.util.math.*;
-import net.minecraft.util.profiler.*;
 import net.minecraft.world.*;
 import org.spongepowered.asm.mixin.*;
-import org.spongepowered.asm.mixin.injection.*;
-import org.spongepowered.asm.mixin.injection.callback.*;
 
 @Debug(export = true)
 @Mixin(GameRenderer.class)
@@ -43,12 +41,22 @@ public abstract class GameRendererMixin {
         Vec3d up = new Vec3d(0, 1, 0);
         Vec3d right = forward.crossProduct(up).normalize();
         up = right.crossProduct(forward).normalize();
+
+        float x = WackyLifeClient.x;
+        float y = WackyLifeClient.y;
+        float z = WackyLifeClient.z;
+
+        if (MinecraftClient.getInstance().player != null && ModAttachments.getChoice(MinecraftClient.getInstance().player).negativeChoiceId().equalsIgnoreCase("offsetcrosshair")) {
+            x = 0.6f;
+        }
+
         Vec3d offset = right.multiply(x).add(up.multiply(y)).add(forward.multiply(z));
 
         Vec3d start = camera.getCameraPosVec(tickProgress).add(offset);
         Vec3d end = start.add(forward.multiply(maxRange));
 
         // Block raycast
+
         HitResult blockHit = camera.getEntityWorld().raycast(new RaycastContext(
                 start,
                 end,

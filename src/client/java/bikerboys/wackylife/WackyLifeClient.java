@@ -1,5 +1,6 @@
 package bikerboys.wackylife;
 
+import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.gui.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.wyr.choice.*;
@@ -20,6 +21,7 @@ import net.minecraft.client.network.*;
 import net.minecraft.client.option.*;
 import net.minecraft.client.util.*;
 import net.minecraft.server.command.*;
+import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import org.lwjgl.glfw.*;
 
@@ -181,9 +183,27 @@ public class WackyLifeClient implements ClientModInitializer {
 		}
 
 		public void onEndTick(MinecraftClient client) {
+            if (client.player != null) {
+				boolean b = ModAttachments.getChoice(client.player).negativeChoiceId().equalsIgnoreCase("hotbarfov");
 
+				if (b) {
+					switch (client.player.getInventory().getSelectedSlot()) {
+						case 0 -> client.options.getFov().setValue(30);
+						case 1 -> client.options.getFov().setValue(110);
+						case 2 -> client.options.getFov().setValue(40);
+						case 3 -> client.options.getFov().setValue(60);
+						case 4 -> client.options.getFov().setValue(50);
+						case 5 -> client.options.getFov().setValue(80);
+						case 6 -> client.options.getFov().setValue(70);
+						case 7 -> client.options.getFov().setValue(100);
+						case 8 -> client.options.getFov().setValue(90);
 
-			++this.tick;
+					}
+
+				}
+
+			}
+                ++this.tick;
 		}
 	}
 }
