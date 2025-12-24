@@ -19,7 +19,7 @@ import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.scoreboard.*;
 import net.minecraft.server.*;
 import net.minecraft.server.network.*;
-import net.minecraft.server.world.*;
+import net.minecraft.sound.*;
 import net.minecraft.text.*;
 import net.minecraft.util.*;
 import net.minecraft.world.*;
@@ -210,13 +210,11 @@ public class WackySeries {
     public void setWildcard(String wildcard, MinecraftServer server) {
         Wildcard wildcard1 = WildcardEnum.getWildcard(wildcard);
 
-        if (this.wildcard != null && wildcard1 != null) {
-            this.wildcard.deactivate(server);
-        }
+
 
         if (wildcard1 != null) {
-            this.wildcard = wildcard1;
-            this.wildcard.onActivate(server);
+
+            activateWildcard(server, wildcard1);
         }
     }
 
@@ -227,6 +225,65 @@ public class WackySeries {
             return wildcard.toString();
         }
         return null;
+    }
+
+    public static void activateWildcard(MinecraftServer server, Wildcard wildcard1) {
+        showDots(server);
+        TaskScheduler.scheduleTask(90, () -> {
+
+          //  if (activeWildcards.isEmpty()) {
+           //     chooseRandomWildcard();
+            //}
+
+            showCryptTitle("A wildcard is active!", server, wildcard1);
+        });
+    }
+
+    public static void showDots(MinecraftServer server) {
+        List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();
+        PlayerUtils.playSoundToPlayers(players, SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(), 0.4f, 1);
+        PlayerUtils.sendTitleToPlayers(players, Text.literal("§a§l,"),0,40,0);
+        TaskScheduler.scheduleTask(30, () -> {
+            PlayerUtils.playSoundToPlayers(players, SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(), 0.4f, 1);
+            PlayerUtils.sendTitleToPlayers(players, Text.literal("§a§l, §e§l,"),0,40,0);
+        });
+        TaskScheduler.scheduleTask(60, () -> {
+            PlayerUtils.playSoundToPlayers(players, SoundEvents.BLOCK_NOTE_BLOCK_DIDGERIDOO.value(), 0.4f, 1);
+            PlayerUtils.sendTitleToPlayers(players, Text.literal("§a§l, §e§l, §c§l,"),0,40,0);
+        });
+    }
+
+    public static void showCryptTitle(String text, MinecraftServer server, Wildcard wildcard1) {
+        PlayerUtils.playSoundToPlayers(server.getPlayerManager().getPlayerList(), SoundEvents.ENTITY_ZOMBIE_VILLAGER_CURE, 0.2f, 1);
+        if (WackyLife.wackyLife.wildcard != null && wildcard1 != null) {
+            WackyLife.wackyLife.wildcard.deactivate(server);
+        }
+        WackyLife.wackyLife.wildcard = wildcard1;
+        WackyLife.wackyLife.wildcard.onActivate(server);
+
+
+        String colorCrypt = "§r§6§l§k";
+        String colorNormal = "§r§6§l";
+        Random random = new Random();
+
+        List<Integer> encryptedIndexes = new ArrayList<>();
+        for (int i = 0; i < text.length(); i++) {
+            encryptedIndexes.add(i);
+        }
+
+        for (int i = 0; i < text.length(); i++) {
+            if (!encryptedIndexes.isEmpty()) {
+                encryptedIndexes.remove(random.nextInt(encryptedIndexes.size()));
+            }
+
+            StringBuilder result = new StringBuilder();
+            for (int j = 0; j < text.length(); j++) {
+                result.append(encryptedIndexes.contains(j) ? colorCrypt : colorNormal);
+                result.append(text.charAt(j));
+            }
+
+            TaskScheduler.scheduleTask((i + 1) * 4, () -> PlayerUtils.sendTitleToPlayers(server.getPlayerManager().getPlayerList(), Text.literal(String.valueOf(result)), 0, 30, 20));
+        }
     }
 
     public Wildcard getWildcardObj() {

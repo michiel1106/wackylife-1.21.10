@@ -12,8 +12,6 @@ import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
 
-import java.math.*;
-
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
 
@@ -28,6 +26,19 @@ public abstract class LivingEntityMixin {
     @Shadow protected abstract float getMovementSpeed(float slipperiness);
 
     @Shadow protected abstract Vec3d applyClimbingSpeed(Vec3d motion);
+
+    @WrapOperation(method = "travelMidAir", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/Block;getSlipperiness()F"))
+    private float getSlipperinessMixin(Block instance, Operation<Float> original) {
+        LivingEntity livingEntity = (LivingEntity)(Object)this;
+
+        if (livingEntity instanceof PlayerEntity player) {
+            if (ModAttachments.getChoice(player).positiveChoiceId().equalsIgnoreCase("ice_physics")) {
+                return 0.989F;
+            }
+        }
+
+        return original.call(instance);
+    }
 
     @Inject(method = "drop", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;dropLoot(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;Z)V"))
     private void dropExtraLoot(ServerWorld world, DamageSource damageSource, CallbackInfo ci) {

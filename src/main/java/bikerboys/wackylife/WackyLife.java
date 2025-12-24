@@ -13,6 +13,7 @@ import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.command.argument.serialize.*;
 import net.fabricmc.fabric.api.command.v2.*;
 import net.minecraft.util.*;
+import net.minecraft.world.tick.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +45,9 @@ public class WackyLife implements ModInitializer {
 				choices.playerChose(context.player(), sendChoices.choices());
 			}
 		}));
+
+
+		TaskScheduler.registerTickHandler();
 
 
 		ChoiceRegistry.registerChoices();

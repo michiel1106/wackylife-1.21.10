@@ -8,6 +8,7 @@ import bikerboys.wackylife.wyr.choice.*;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.server.*;
 import net.minecraft.server.network.*;
+import net.minecraft.sound.*;
 
 import java.util.*;
 

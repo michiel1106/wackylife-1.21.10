@@ -1,6 +1,7 @@
 package bikerboys.wackylife;
 
 import bikerboys.wackylife.attachements.*;
+import bikerboys.wackylife.choices.*;
 import bikerboys.wackylife.gui.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.wyr.choice.*;
@@ -56,6 +57,7 @@ public class WackyLifeClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ClientTickEvents.END_CLIENT_TICK.register(CLIENT_TICKER);
+		ClientTickEvents.END_WORLD_TICK.register(ChoiceTicker::tick);
 
 		ClientPlayNetworking.registerGlobalReceiver(OpenChoicesScreen.ID, ((openChoicesScreen, context) -> {
 			context.client().setScreen(new ChoicesScreen(openChoicesScreen.choices().getFirst(), openChoicesScreen.choices().getLast()));

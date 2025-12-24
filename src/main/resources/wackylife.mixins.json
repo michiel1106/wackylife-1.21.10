@@ -6,13 +6,18 @@
     "MutableTextAccessor",
     "PlayerEntityMixin",
     "PlayerManagerMixin",
+    "ServerPlayerEntityMixin",
     "ServerPlayNetworkHandlerMixin",
+    "choice.AbstractBoatEntityMixin",
     "choice.AbstractFurnaceBlockEntityMixin",
+    "choice.BucketItemMixin",
+    "choice.EnderPearlEntityMixin",
     "choice.EntityMixin",
     "choice.HungerManagerMixin",
     "choice.ItemMixin",
     "choice.LivingEntityMixin",
     "choice.PhantomSpawnerMixin",
+    "choice.PlayerEntityMixin",
     "choice.SheepEntityMixin"
   ],
   "injectors": {

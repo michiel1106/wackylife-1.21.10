@@ -2,12 +2,14 @@ package bikerboys.wackylife.mixin.choice;
 
 import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.wyr.choice.*;
+import net.minecraft.component.type.*;
 import net.minecraft.entity.player.*;
 import net.minecraft.server.network.*;
 import net.minecraft.server.world.*;
 import net.minecraft.world.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
+import org.spongepowered.asm.mixin.injection.callback.*;
 
 @Debug(export = true)
 @Mixin(HungerManager.class)
@@ -23,6 +25,19 @@ public abstract class HungerManagerMixin {
 
     @Shadow public abstract void addExhaustion(float exhaustion);
 
+    @Shadow protected abstract void addInternal(int nutrition, float saturation);
+
+    @Unique
+    public boolean hasHalfHungerAmount = false;
+
+    @Inject(method = "eat", at = @At("HEAD"), cancellable = true)
+    private void onEat(FoodComponent foodComponent, CallbackInfo ci) {
+        if (hasHalfHungerAmount) {
+            addInternal(foodComponent.nutrition() / 2, foodComponent.saturation() / 2);
+            ci.cancel();
+        }
+    }
+
     /**
      * @author
      * @reason
@@ -32,9 +47,7 @@ public abstract class HungerManagerMixin {
         ServerWorld serverWorld = player.getEntityWorld();
         Difficulty difficulty = serverWorld.getDifficulty();
         boolean hasChoice = ModAttachments.getChoice(player).negativeChoiceId().equals("double_hunger_drain");
-
-
-
+        hasHalfHungerAmount = ModAttachments.getChoice(player).negativeChoiceId().equals("half_hunger");
 
         if (!hasChoice) {
             if (this.exhaustion > 4.0F) {

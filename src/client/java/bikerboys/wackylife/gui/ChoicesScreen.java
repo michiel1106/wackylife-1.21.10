@@ -48,7 +48,7 @@ public class ChoicesScreen extends Screen {
             }
         });
         this.confirmButton.active = false;
-        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.UI_BUTTON_CLICK, 1.0F));
+        MinecraftClient.getInstance().getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_NOTE_BLOCK_CHIME, 2.0F));
     }
 
     protected void addChoicePairWidget(int x, int y, boolean left) {

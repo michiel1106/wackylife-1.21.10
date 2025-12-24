@@ -6,9 +6,12 @@ import dev.architectury.event.events.common.*;
 import dev.architectury.event.events.common.BlockEvent;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
 import net.minecraft.block.*;
+import net.minecraft.component.*;
+import net.minecraft.component.type.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.damage.*;
 import net.minecraft.entity.player.*;
+import net.minecraft.item.*;
 import net.minecraft.nbt.*;
 import net.minecraft.registry.tag.*;
 import net.minecraft.server.*;
@@ -43,10 +46,7 @@ public class ChoiceManager {
                     if (damageSource.isOf(DamageTypes.ON_FIRE) || damageSource.isIn(DamageTypeTags.IS_FIRE)) {
                         return EventResult.interruptFalse();
                     }
-
-
                 }
-
             }
         }
 
@@ -114,7 +114,7 @@ public class ChoiceManager {
             BlockState state = world.getBlockState(task.pos);
             try {
                 if (state.getBlock() instanceof Fertilizable fertilizable) {
-                    for (int i = 0; i < 15; i++) {
+                    for (int i = 0; i < 20; i++) {
                         BlockState currentState = world.getBlockState(task.pos);
                         if (fertilizable.isFertilizable(world, task.pos, currentState) && fertilizable.canGrow(world, world.random, task.pos, currentState)) {
                             fertilizable.grow(world, world.random, task.pos, currentState);
@@ -135,7 +135,27 @@ public class ChoiceManager {
 
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             tickPlayer(player);
+            checkElytra(player);
         }
+    }
+
+    private static void checkElytra(ServerPlayerEntity player) {
+        for (ItemStack itemStack : player.getInventory()) {
+            if (itemStack.isOf(Items.ELYTRA)) {
+
+                // special elytra
+                if (itemStack.getMaxDamage() == 30) {
+                    if (!itemStack.getEnchantments().getEnchantmentEntries().isEmpty()) {
+                        itemStack.set(DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
+                    }
+
+                    if (itemStack.getDamage() == 29) {
+                        itemStack.setCount(0);
+                    }
+                }
+            }
+        }
+
     }
 
     /**

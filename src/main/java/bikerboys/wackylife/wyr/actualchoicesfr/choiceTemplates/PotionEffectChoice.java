@@ -28,7 +28,7 @@ public class PotionEffectChoice extends Choice {
     @Override
     public void tick(World world, PlayerEntity player, NbtCompound data) {
         if (predicate.test(player)) {
-            player.addStatusEffect(new StatusEffectInstance(statusEffect, 20, amplifier));
+            player.addStatusEffect(new StatusEffectInstance(statusEffect, 30, amplifier, false, false));
         }
     }
 }

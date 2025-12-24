@@ -13,6 +13,7 @@ import net.minecraft.util.math.*;
 import net.minecraft.util.math.random.*;
 import net.minecraft.world.*;
 import net.minecraft.world.spawner.*;
+import org.objectweb.asm.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.*;
@@ -26,22 +27,21 @@ public class PhantomSpawnerMixin {
 
 
 
-    /**
-     * @author
-     * @reason
-     */
-    @Inject(method = "spawn", at = @At("HEAD"), cancellable = true)
+    @Inject(
+            method = "spawn",
+            at = @At(
+                    value = "FIELD",
+                    target = "Lnet/minecraft/world/spawner/PhantomSpawner;cooldown:I",
+                    opcode = Opcodes.PUTFIELD,
+                    shift = At.Shift.AFTER
+            ), cancellable = true
+    )
     public void spawnthang(ServerWorld world, boolean spawnMonsters, CallbackInfo ci) {
-        if (spawnMonsters) {
-            if (world.getGameRules().getBoolean(GameRules.DO_INSOMNIA)) {
                 Random random = world.random;
-                this.cooldown--;
                 if (this.cooldown <= 0) {
-                    this.cooldown = this.cooldown + (60 + random.nextInt(60)) * 20;
                     if (world.getAmbientDarkness() >= 5 || !world.getDimension().hasSkyLight()) {
                         for (ServerPlayerEntity serverPlayerEntity : world.getPlayers()) {
-                            boolean hasChoice = ModAttachments.getChoice(serverPlayerEntity).negativeChoiceId().equals("double_hunger_drain");
-
+                            boolean hasChoice = ModAttachments.getChoice(serverPlayerEntity).negativeChoiceId().equals("always_phantom");
                             if (!hasChoice) {
                                 continue;
                             }
@@ -52,11 +52,11 @@ public class PhantomSpawnerMixin {
                                     if (localDifficulty.isHarderThan(random.nextFloat() * 3.0F)) {
                                         ServerStatHandler serverStatHandler = serverPlayerEntity.getStatHandler();
 
-
-                                        int i = random.nextBetween(80000, 130000);
+                                        int i = random.nextBetween(120000, 190000);
                                         int j = 24000;
+                                        int i1 = random.nextInt(i);
 
-                                        if (random.nextInt(i) >= 72000) {
+                                        if (i1 >= 72000) {
                                             BlockPos blockPos2 = blockPos.up(20 + random.nextInt(15)).east(-10 + random.nextInt(21)).south(-10 + random.nextInt(21));
                                             BlockState blockState = world.getBlockState(blockPos2);
                                             FluidState fluidState = world.getFluidState(blockPos2);
@@ -70,6 +70,7 @@ public class PhantomSpawnerMixin {
                                                         phantomEntity.refreshPositionAndAngles(blockPos2, 0.0F, 0.0F);
                                                         entityData = phantomEntity.initialize(world, localDifficulty, SpawnReason.NATURAL, entityData);
                                                         world.spawnEntityAndPassengers(phantomEntity);
+                                                        this.cooldown = this.cooldown + (60 + random.nextInt(60)) * 20;
                                                         ci.cancel();
                                                     }
                                                 }
@@ -82,7 +83,5 @@ public class PhantomSpawnerMixin {
                     }
                 }
             }
-        }
-    }
 
 }

@@ -7,6 +7,8 @@
     "PlayerEntityRendererMixin",
     "PlayerListHudMixin",
     "PlayerListRedirectMixin",
+    "choices.AbstractBlockStateMixin",
+    "choices.ClientConnectionMixin",
     "choices.CreativeInventoryScreenMixin",
     "choices.GameOptionsMixin",
     "choices.HudMixin",
@@ -14,5 +16,7 @@
   ],
   "injectors": {
     "defaultRequire": 1
-	}
+  },
+  "mixins": [
+  ]
 }
