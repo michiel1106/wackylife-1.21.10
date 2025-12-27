@@ -5,11 +5,13 @@ import net.minecraft.component.*;
 import net.minecraft.entity.*;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.registry.*;
+import net.minecraft.server.*;
 import net.minecraft.server.network.*;
 import net.minecraft.sound.*;
 import net.minecraft.text.*;
 
 import java.util.*;
+import java.util.function.*;
 
 public class PlayerUtils {
 
@@ -65,6 +67,12 @@ public class PlayerUtils {
         for (ServerPlayerEntity player : players) {
             if (player == null) continue;
             ((IServerPlayer)player).ls$playNotifySound(sound, soundCategory, volume, pitch);
+        }
+    }
+
+    public static void applyToAll(MinecraftServer server, Consumer<ServerPlayerEntity> player) {
+        for (ServerPlayerEntity serverPlayerEntity : server.getPlayerManager().getPlayerList()) {
+            player.accept(serverPlayerEntity);
         }
     }
 

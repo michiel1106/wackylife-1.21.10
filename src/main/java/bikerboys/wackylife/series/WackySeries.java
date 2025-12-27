@@ -6,6 +6,7 @@ import bikerboys.wackylife.Wildcard.wildcards.*;
 import bikerboys.wackylife.manager.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.util.*;
+import bikerboys.wackylife.wyr.choice.*;
 import dev.architectury.event.*;
 import dev.architectury.event.events.common.*;
 import net.fabricmc.fabric.api.entity.event.v1.*;
@@ -198,10 +199,8 @@ public class WackySeries {
             this.wildcard.deactivate(server);
         }
 
-        TitleS2CPacket titleS2CPacket = new TitleS2CPacket(Text.literal("End of session!").formatted(Formatting.GRAY));
-
-
-        server.getPlayerManager().sendToAll(titleS2CPacket);
+        PlayerUtils.sendTitleToPlayers(server.getPlayerManager().getPlayerList(), Text.literal("End of session!").formatted(Formatting.GRAY), 12, 45, 12);
+        PlayerUtils.applyToAll(server, (player -> ChoiceManager.setChoice(player, ChoiceRegistry.get("empty_pos"), ChoiceRegistry.get("empty_neg"))));
 
         Constants.paused = true;
 
