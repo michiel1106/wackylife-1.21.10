@@ -35,13 +35,13 @@ public class TriviaBotClientData {
     public void updateAnimations() {
         if (bot.submittedAnswer() && !lastSubmittedAnswer) {
             pauseAllAnimations("analyzing");
-            analyzingAnimationState.start(bot.ticks);
+            analyzingAnimationState.start(bot.age);
         }
 
         if (bot.ranOutOfTime() && !bot.santaBot()) {
             pauseAllAnimations("snail_transform");
             if (!lastRanOutOfTime) {
-                snailTransformAnimationState.startIfStopped(bot.tickCount);
+                snailTransformAnimationState.start(bot.age);
             }
         }
         else if (bot.getAnalyzingTime() > 0) {
@@ -51,29 +51,29 @@ public class TriviaBotClientData {
             if (bot.getAnalyzingTime() == 0) {
                 if (bot.answeredRight()) {
                     pauseAllAnimations("answer_correct");
-                    answerCorrectAnimationState.startIfStopped(bot.tickCount);
+                    answerCorrectAnimationState.start(bot.age);
                 }
                 else {
                     pauseAllAnimations("answer_incorrect");
-                    answerIncorrectAnimationState.startIfStopped(bot.tickCount);
+                    answerIncorrectAnimationState.start(bot.age);
                 }
             }
         }
         else if (bot.interactedWith()) {
             pauseAllAnimations("countdown");
-            countdownAnimationState.startIfStopped(bot.tickCount);
+            countdownAnimationState.start(bot.age);
         }
         else if (bot.isBotGliding()) {
             pauseAllAnimations("glide");
-            glideAnimationState.startIfStopped(bot.tickCount);
+            glideAnimationState.start(bot.age);
         }
-        else if (bot.walkAnimation.isMoving() && bot.walkAnimation.speed() > 0.02) {
+        else if (bot.limbAnimator.isLimbMoving() && bot.limbAnimator.getSpeed() > 0.02) {
             pauseAllAnimations("walk");
-            walkAnimationState.startIfStopped(bot.tickCount);
+            walkAnimationState.start(bot.age);
         }
         else {
             pauseAllAnimations("idle");
-            idleAnimationState.startIfStopped(bot.tickCount);
+            idleAnimationState.start(bot.age);
         }
 
         lastSubmittedAnswer = bot.submittedAnswer();

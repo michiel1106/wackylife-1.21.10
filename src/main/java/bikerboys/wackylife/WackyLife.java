@@ -4,6 +4,8 @@ import bikerboys.wackylife.Wildcard.*;
 import bikerboys.wackylife.Wildcard.wildcards.*;
 import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.commands.*;
+import bikerboys.wackylife.entity.*;
+import static bikerboys.wackylife.entity.PlayerBoundEntity.isClient;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.series.*;
 import bikerboys.wackylife.util.*;
@@ -19,11 +21,18 @@ import org.slf4j.LoggerFactory;
 
 public class WackyLife implements ModInitializer {
 
+	public static IClientHelper clientHelper;
+
 	public static WackySeries wackyLife = new WackySeries();
 
 	public static final String MOD_ID = "wackylife";
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+	public static boolean isLogicalSide() {
+		if (!isClient()) return true;
+		return clientHelper != null && clientHelper.isRunningIntegratedServer();
+	}
 
 	@Override
 	public void onInitialize() {
@@ -37,6 +46,7 @@ public class WackyLife implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(DropItemS2C.ID, DropItemS2C.CODEC);
 		PayloadTypeRegistry.playS2C().register(RandomSprintS2C.ID, RandomSprintS2C.CODEC);
 
+		ModEntities.register();
 		PayloadTypeRegistry.playC2S().register(SendChoices.ID, SendChoices.CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(SendChoices.ID, ((sendChoices, context) -> {
@@ -67,4 +77,10 @@ public class WackyLife implements ModInitializer {
 		ScoreboardManager.INSTANCE.toString();
 
 	}
+
+
+	public static void setClientHelper(IClientHelper helper) {
+		clientHelper = helper;
+	}
+
 }

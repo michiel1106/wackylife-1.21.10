@@ -6,6 +6,7 @@ import net.minecraft.util.*;
 public enum WildcardEnum implements StringIdentifiable {
     WACKY_SKINS("wackyskins"),
     CHOICES("choices"),
+    TRIVIA("trivia"),
     EMPTY("empty");
 
 
@@ -22,6 +23,9 @@ public enum WildcardEnum implements StringIdentifiable {
             }
             case "choices" -> {
                 return new Choices();
+            }
+            case "trivia" -> {
+                return new Empty();
             }
             case "empty" -> {
                 return new Empty();

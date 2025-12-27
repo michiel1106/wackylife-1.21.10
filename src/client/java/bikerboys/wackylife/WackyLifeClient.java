@@ -4,6 +4,7 @@ import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.choices.*;
 import bikerboys.wackylife.gui.*;
 import bikerboys.wackylife.networking.*;
+import bikerboys.wackylife.util.*;
 import bikerboys.wackylife.wyr.choice.*;
 import com.mojang.authlib.minecraft.client.*;
 import com.mojang.brigadier.arguments.*;
@@ -28,7 +29,7 @@ import org.lwjgl.glfw.*;
 
 import java.util.*;
 
-public class WackyLifeClient implements ClientModInitializer {
+public class WackyLifeClient implements ClientModInitializer, IClientHelper {
 	public static List<String> playerNameList = new ArrayList<>();
 	public static Map<String, String> playerNameMap = new HashMap<>();
 	private static final ClientTicker CLIENT_TICKER;
@@ -172,8 +173,12 @@ public class WackyLifeClient implements ClientModInitializer {
 		}))));
 	}
 
-
-
+	@Override
+	public boolean isRunningIntegratedServer() {
+		MinecraftClient client = MinecraftClient.getInstance();
+		if (client == null) return false;
+		return client.isIntegratedServerRunning();
+	}
 
 
 	static class ClientTicker implements ClientTickEvents.EndTick {

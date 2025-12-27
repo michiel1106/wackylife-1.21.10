@@ -1,10 +1,14 @@
 package bikerboys.wackylife.entity.triviabot;
 
 import bikerboys.wackylife.*;
+import bikerboys.wackylife.entity.triviabot.goal.*;
+import bikerboys.wackylife.entity.triviabot.server.*;
+import bikerboys.wackylife.entity.triviabot.server.trivia.*;
 import net.minecraft.block.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.*;
 import net.minecraft.entity.ai.pathing.*;
+import net.minecraft.entity.attribute.*;
 import net.minecraft.entity.data.*;
 import net.minecraft.entity.mob.*;
 import net.minecraft.entity.player.*;
@@ -54,21 +58,16 @@ public class TriviaBot extends AmbientEntity {
     }
 
 
-
-    public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes()
-                .add(Attributes.MAX_HEALTH, 10000)
-                .add(Attributes.MOVEMENT_SPEED, MOVEMENT_SPEED)
-                .add(Attributes.FLYING_SPEED, MOVEMENT_SPEED)
-                //? if > 1.20.3 {
-                .add(Attributes.STEP_HEIGHT, 1)
-                .add(Attributes.SAFE_FALL_DISTANCE, 100)
-                //?}
-                //? if > 1.20.5 {
-                .add(Attributes.WATER_MOVEMENT_EFFICIENCY, 1)
-                //?}
-                .add(Attributes.FOLLOW_RANGE, 100)
-                .add(Attributes.ATTACK_DAMAGE, 0);
+    public static DefaultAttributeContainer.Builder createAttributes() {
+        return MobEntity.createMobAttributes()
+                .add(EntityAttributes.MAX_HEALTH, 10000)
+                .add(EntityAttributes.MOVEMENT_SPEED, MOVEMENT_SPEED)
+                .add(EntityAttributes.FLYING_SPEED, MOVEMENT_SPEED)
+                .add(EntityAttributes.STEP_HEIGHT, 1)
+                .add(EntityAttributes.SAFE_FALL_DISTANCE, 100)
+                .add(EntityAttributes.WATER_MOVEMENT_EFFICIENCY, 1)
+                .add(EntityAttributes.FOLLOW_RANGE, 100)
+                .add(EntityAttributes.ATTACK_DAMAGE, 0);
     }
 
     @Override
@@ -83,7 +82,9 @@ public class TriviaBot extends AmbientEntity {
     @Override
     public void tick() {
         super.tick();
-        serverData.tick();
+        if (!getEntityWorld().isClient()) {
+            serverData.tick(this.getEntityWorld().getServer());
+        }
         clientData.tick();
     }
 

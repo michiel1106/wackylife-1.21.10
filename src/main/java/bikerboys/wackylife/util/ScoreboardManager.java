@@ -63,6 +63,17 @@ public class ScoreboardManager {
 
     }
 
+    public boolean isDead(ServerPlayerEntity player) {
+        int lives = getLives(player, player.getEntityWorld().getServer());
+
+        if (lives >= 1) {
+            return true;
+        }
+
+        return false;
+
+    }
+
     public void incrementLives(PlayerEntity player, MinecraftServer server) {
         if (server != null) {
             ScoreAccess scoreboard = getScoreboard(player, server, Constants.LivesScoreboard);
