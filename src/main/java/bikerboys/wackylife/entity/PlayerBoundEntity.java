@@ -25,6 +25,7 @@ public interface PlayerBoundEntity {
 
     default void setBoundPlayer(ServerPlayerEntity player) {
         if (player == null) return;
+        System.out.println("setboundpalyer" + player.getUuid());
         setBoundPlayerUUID(player.getUuid());
         onSetPlayer(player);
     }

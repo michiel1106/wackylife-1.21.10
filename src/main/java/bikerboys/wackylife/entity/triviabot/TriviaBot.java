@@ -37,7 +37,7 @@ public class TriviaBot extends AmbientEntity {
     public static boolean CAN_START_RIDING = true;
     public Question question = Question.DEFAULT;
 
-    public TriviaHandler triviaHandler = new TriviaHandler(this);
+    public TriviaHandler triviaHandler;
     public TriviaBotClientData clientData = new TriviaBotClientData(this);
     public TriviaBotServerData serverData = new TriviaBotServerData(this);
     public TriviaBotSounds sounds = new TriviaBotSounds(this);
@@ -58,6 +58,7 @@ public class TriviaBot extends AmbientEntity {
         super(entityType, level);
         setInvulnerable(true);
         setPersistent();
+
     }
 
     public void setQuestion(Question question) {
@@ -82,7 +83,7 @@ public class TriviaBot extends AmbientEntity {
 
     @Override
     protected ActionResult interactMob(PlayerEntity player, Hand hand) {
-        return triviaHandler.onInteract(player, hand);
+        return triviaHandler.interactMob(player, hand);
     }
 
     @Override
@@ -91,7 +92,6 @@ public class TriviaBot extends AmbientEntity {
         goalSelector.add(1, new TriviaBotGlideGoal(this));
         goalSelector.add(2, new TriviaBotLookAtPlayerGoal(this));
     }
-
 
 
     @Override
@@ -140,7 +140,13 @@ public class TriviaBot extends AmbientEntity {
         serverData.tick(this.getEntityWorld().getServer());
 
         clientData.tick();
+        if (triviaHandler == null) {
+            triviaHandler = new TriviaHandler(this);
+        }
+
         triviaHandler.tick();
+
+
     }
 
     /*

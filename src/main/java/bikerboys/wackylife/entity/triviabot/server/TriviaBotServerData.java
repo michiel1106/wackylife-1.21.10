@@ -34,6 +34,7 @@ public class TriviaBotServerData implements PlayerBoundEntity {
 
     @Override
     public void setBoundPlayerUUID(UUID uuid) {
+        System.out.println("setboundpalyeruuid" + uuid);
         _boundPlayerUUID = uuid;
     }
 
@@ -61,7 +62,7 @@ public class TriviaBotServerData implements PlayerBoundEntity {
         if (bot.getEntityWorld().isClient()) return;
         if (despawnChecks()) return;
         bot.pathfinding.tick();
-
+        
         chunkLoading();
         bot.clearStatusEffects();
         bot.sounds.playSounds(server);

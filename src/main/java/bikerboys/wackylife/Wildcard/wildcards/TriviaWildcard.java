@@ -17,6 +17,7 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
+import org.apache.logging.log4j.core.jmx.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -117,6 +118,16 @@ public class TriviaWildcard extends Wildcard {
         spawnBotFor(player, TriviaBotPathfinding.getBlockPosNearPlayer(player, player.getBlockPos().add(0, 50, 0), 10));
     }
 
+    public static void handleAnswer(ServerPlayerEntity player, int answer) {
+        if (activeBots.containsKey(player.getUuid())) {
+            TriviaBot bot = activeBots.get(player.getUuid());
+            if (bot.isAlive()) {
+                bot.triviaHandler.handleAnswer(answer);
+            }
+        }
+
+    }
+
     public static void spawnBotFor(ServerPlayerEntity player, BlockPos pos) {
         resetPlayerOnBotSpawn(player);
 
@@ -127,7 +138,6 @@ public class TriviaWildcard extends Wildcard {
         if (bot != null) {
             bot.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
             bot.serverData.setBoundPlayer(player);
-
             world.spawnEntity(bot);
 
             activeBots.put(player.getUuid(), bot);

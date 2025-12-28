@@ -73,7 +73,13 @@ public class WackyLife implements ModInitializer {
 			}
 		}));
 
+		ServerPlayNetworking.registerGlobalReceiver(SubmitAnswerC2S.ID, ((payload, context) -> {
 
+			if (WackyLife.wackyLife.getWildcardObj() instanceof TriviaWildcard wildcard) {
+				TriviaWildcard.handleAnswer(context.player(), payload.index());
+			}
+
+		}));
 
 
 		TaskScheduler.registerTickHandler();
