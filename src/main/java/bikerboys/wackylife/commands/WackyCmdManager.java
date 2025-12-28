@@ -7,7 +7,6 @@ import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.entity.triviabot.*;
 import bikerboys.wackylife.entity.triviabot.trivia.*;
 import bikerboys.wackylife.manager.*;
-import bikerboys.wackylife.series.*;
 import bikerboys.wackylife.util.*;
 import bikerboys.wackylife.wyr.choice.*;
 import com.mojang.brigadier.CommandDispatcher;
@@ -16,14 +15,12 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.*;
-import net.minecraft.entity.player.*;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 
 import java.util.*;
-import java.util.stream.*;
 
 public class WackyCmdManager {
 
@@ -84,9 +81,9 @@ public class WackyCmdManager {
                                             Entity entity = EntityArgumentType.getEntity(context, "entity");
                                             if (entity instanceof TriviaBot bot) {
                                                 try {
-                                                    List<Question> questions = QuestionManager.Questions;
+                                                    List<Question> questions = QuestionManager.questions;
                                                     System.out.println(questions);
-                                                    Question question = QuestionManager.Questions.get(index);
+                                                    Question question = QuestionManager.questions.get(index);
                                                     bot.setQuestion(question);
                                                 } catch (Exception e) {
                                                     context.getSource().sendError(Text.literal("Prolly out of bounds"));

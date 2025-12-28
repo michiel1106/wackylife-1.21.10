@@ -14,10 +14,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.concurrent.*;
 
 public class QuestionResourceLoader implements SimpleSynchronousResourceReloadListener {
     private static final Gson GSON = new Gson();
@@ -35,7 +33,7 @@ public class QuestionResourceLoader implements SimpleSynchronousResourceReloadLi
     @Override
     public void reload(ResourceManager manager) {
 
-        QuestionManager.Questions.clear();
+        QuestionManager.questions.clear();
 
         try {
             Collection<Resource> resources =
@@ -59,7 +57,7 @@ public class QuestionResourceLoader implements SimpleSynchronousResourceReloadLi
 
 
 
-                        QuestionManager.Questions.add(new Question(question, answers, correctIndex));
+                        QuestionManager.questions.add(new Question(question, answers, correctIndex));
                     }
                 }
             }

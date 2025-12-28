@@ -5,6 +5,7 @@ import bikerboys.wackylife.choices.*;
 import bikerboys.wackylife.entity.*;
 import bikerboys.wackylife.entity.triviabot.*;
 import bikerboys.wackylife.gui.*;
+import bikerboys.wackylife.gui.trivia.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.util.*;
 import bikerboys.wackylife.wyr.choice.*;
@@ -66,6 +67,14 @@ public class WackyLifeClient implements ClientModInitializer, IClientHelper {
 		EntityModelLayerRegistry.registerModelLayer(TriviaBotModel.TRIVIA_BOT, TriviaBotModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.TRIVIA_BOT, TriviaBotRenderer::new);
 
+
+		ClientPlayNetworking.registerGlobalReceiver(S2COpenTriviaScreen.ID, ((triviaScreen, context) -> {
+			context.client().setScreen(new QuizScreen(triviaScreen.question(), triviaScreen.uuid()));
+		}));
+
+		ClientPlayNetworking.registerGlobalReceiver(QuestionTimeLeftUpdateS2C.ID, ((questionTimeLeftUpdateS2C, context) -> {
+			Trivia.setTicksLeft(questionTimeLeftUpdateS2C.integer());
+		}));
 
 		ClientPlayNetworking.registerGlobalReceiver(OpenChoicesScreen.ID, ((openChoicesScreen, context) -> {
 			context.client().setScreen(new ChoicesScreen(openChoicesScreen.choices().getFirst(), openChoicesScreen.choices().getLast()));

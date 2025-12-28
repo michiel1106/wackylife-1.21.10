@@ -29,7 +29,7 @@ public class TriviaBot extends AmbientEntity {
     public static final Identifier DEFAULT_TEXTURE = Identifier.of(WackyLife.MOD_ID, "textures/entity/triviabot/triviabot.png");
     public static final Identifier SANTABOT_TEXTURE = Identifier.of(WackyLife.MOD_ID, "textures/entity/triviabot/santabot.png");
     public static final Identifier ID = Identifier.of(WackyLife.MOD_ID,"triviabot");
-
+    public static final TrackedDataHandler<Question> BOOLEAN = TrackedDataHandler.create(Question.CODEC);
 
     public static final int STATIONARY_TP_COOLDOWN = 400; // No movement for 20 seconds teleports the bot
     public static final float MOVEMENT_SPEED = 0.45f;
@@ -37,6 +37,7 @@ public class TriviaBot extends AmbientEntity {
     public static boolean CAN_START_RIDING = true;
     public Question question = Question.DEFAULT;
 
+    public TriviaHandler triviaHandler = new TriviaHandler(this);
     public TriviaBotClientData clientData = new TriviaBotClientData(this);
     public TriviaBotServerData serverData = new TriviaBotServerData(this);
     public TriviaBotSounds sounds = new TriviaBotSounds(this);
@@ -50,7 +51,8 @@ public class TriviaBot extends AmbientEntity {
     private static final TrackedData<Boolean> gliding = DataTracker.registerData(TriviaBot.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final TrackedData<Integer> analyzing = DataTracker.registerData(TriviaBot.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<Boolean> santaBot = DataTracker.registerData(TriviaBot.class, TrackedDataHandlerRegistry.BOOLEAN);
-
+    private static final TrackedData<Integer> waving = DataTracker.registerData(TriviaBot.class, TrackedDataHandlerRegistry.INTEGER);
+    private static final TrackedData<Boolean> leaving = DataTracker.registerData(TriviaBot.class, TrackedDataHandlerRegistry.BOOLEAN);
 
     public TriviaBot(EntityType<? extends AmbientEntity> entityType, World level) {
         super(entityType, level);
@@ -76,6 +78,11 @@ public class TriviaBot extends AmbientEntity {
                 .add(EntityAttributes.WATER_MOVEMENT_EFFICIENCY, 1)
                 .add(EntityAttributes.FOLLOW_RANGE, 100)
                 .add(EntityAttributes.ATTACK_DAMAGE, 0);
+    }
+
+    @Override
+    protected ActionResult interactMob(PlayerEntity player, Hand hand) {
+        return triviaHandler.onInteract(player, hand);
     }
 
     @Override
@@ -134,6 +141,7 @@ public class TriviaBot extends AmbientEntity {
             serverData.tick(this.getEntityWorld().getServer());
         }
         clientData.tick();
+        triviaHandler.tick();
     }
 
     /*
@@ -237,6 +245,18 @@ public class TriviaBot extends AmbientEntity {
         this.dataTracker.set(santaBot, value);
     }
 
+    public void setWaving(int value) {
+        this.dataTracker.set(waving, value);
+    }
+    public void setLeaving(boolean value) {
+        this.dataTracker.set(leaving, value);
+    }
+
+
+    public boolean canSumbitAnswer() {
+        return !ranOutOfTime() && !submittedAnswer();
+    }
+
     public boolean ranOutOfTime() {
         return this.dataTracker.get(ranOutOfTime);
     }
@@ -257,5 +277,16 @@ public class TriviaBot extends AmbientEntity {
     }
     public boolean santaBot() {
         return this.dataTracker.get(santaBot);
+    }
+
+    public int waving() {
+        return this.dataTracker.get(waving);
+    }
+    public boolean leaving() {
+        return this.dataTracker.get(leaving);
+    }
+
+    public int getTickCount() {
+        return age;
     }
 }

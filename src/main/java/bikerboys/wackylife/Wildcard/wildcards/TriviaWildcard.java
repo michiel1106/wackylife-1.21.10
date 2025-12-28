@@ -33,21 +33,14 @@ public class TriviaWildcard extends Wildcard {
     private static final Map<UUID, Integer> botsSpawnedCount = new HashMap<>();
     private static final Random rnd = new Random();
 
-    // Tracking used questions to avoid repeats
-    private static final List<String> usedEasyQuestions = new ArrayList<>();
-    private static final List<String> usedNormalQuestions = new ArrayList<>();
-    private static final List<String> usedHardQuestions = new ArrayList<>();
+
 
     @Override
     public void onActivate(MinecraftServer server) {
-        // Reset State
         activeBots.clear();
         botsSpawnedCount.clear();
         resetQuestionState();
         tickCounter = 0;
-
-
-        broadcast(server, "§7Trivia Bots have been activated! Watch your step.");
     }
 
     @Override
@@ -70,7 +63,6 @@ public class TriviaWildcard extends Wildcard {
     public void deactivate(MinecraftServer server) {
         killAllBots(server);
 
-        // Reset all players
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             resetPlayerOnBotSpawn(player);
         }
@@ -82,7 +74,7 @@ public class TriviaWildcard extends Wildcard {
 
     @Override
     public void onPlayerJoin(ServerPlayerEntity player) {
-        // Optional: If they log in during the wildcard, ensure they are clean
+
         if (activeBots.containsKey(player.getUuid())) {
             TriviaBot bot = activeBots.get(player.getUuid());
             if (bot == null || !bot.isAlive()) {
@@ -93,8 +85,7 @@ public class TriviaWildcard extends Wildcard {
 
     @Override
     public void onPlayerLeave(ServerPlayerEntity player) {
-        // Optional: Kill their bot if they leave?
-        // keeping it simple: do nothing, let tick cleanup handle it if the bot dies/despawns
+
     }
 
     @Override
@@ -102,7 +93,6 @@ public class TriviaWildcard extends Wildcard {
         return "Trivia Bots";
     }
 
-    // --- Core Logic ---
 
     private void trySpawnBots(MinecraftServer server) {
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -124,30 +114,26 @@ public class TriviaWildcard extends Wildcard {
     }
 
     public static void spawnBotFor(ServerPlayerEntity player) {
-        spawnBotFor(player, TriviaBotPathfinding.getBlockPosNearPlayer(player, player.getBlockPos().add(0,50,0), 10));
+        spawnBotFor(player, TriviaBotPathfinding.getBlockPosNearPlayer(player, player.getBlockPos().add(0, 50, 0), 10));
     }
+
     public static void spawnBotFor(ServerPlayerEntity player, BlockPos pos) {
-        // 1. Clean up old bot reference
         resetPlayerOnBotSpawn(player);
 
         ServerWorld world = player.getEntityWorld();
 
-        // 2. Create the entity but DO NOT spawn yet
         TriviaBot bot = ModEntities.TRIVIA_BOT.create(world, SpawnReason.COMMAND);
 
         if (bot != null) {
-            // 3. Setup data BEFORE it hits the world
-            // This ensures goals have valid data the millisecond they start ticking
             bot.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
             bot.serverData.setBoundPlayer(player);
 
-            // 4. Now actually put it in the world
             world.spawnEntity(bot);
 
             activeBots.put(player.getUuid(), bot);
 
             // Sound Notification
-            ((IServerPlayer)player).ls$playNotifySound(
+            ((IServerPlayer) player).ls$playNotifySound(
                     SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
                     SoundCategory.MASTER,
                     0.5f,
@@ -169,8 +155,6 @@ public class TriviaWildcard extends Wildcard {
     public void killAllBots(MinecraftServer server) {
         for (ServerWorld world : server.getWorlds()) {
             List<Entity> toKill = new ArrayList<>();
-            // In Yarn, iterating entities can be tricky depending on version.
-            // This is a safe generic approach:
             for (Entity entity : world.getEntitiesByType(ModEntities.TRIVIA_BOT, e -> e instanceof TriviaBot)) {
                 toKill.add(entity);
             }
@@ -178,10 +162,8 @@ public class TriviaWildcard extends Wildcard {
         }
     }
 
-    // --- Helper Logic (Questions & Player Reset) ---
 
     public static void resetPlayerOnBotSpawn(ServerPlayerEntity player) {
-        // Despawn existing bot if alive
         if (activeBots.containsKey(player.getUuid())) {
             TriviaBot bot = activeBots.get(player.getUuid());
             if (bot != null && bot.isAlive()) {
@@ -189,23 +171,10 @@ public class TriviaWildcard extends Wildcard {
             }
         }
 
-        // Reset Player "Curses" (Punishments)
-        // Assuming AttributeUtils/SizeShifting are accessible util classes
-        // If these classes don't exist in the simplified version, remove these lines.
-        /*
-        SizeShifting.setPlayerSize(player, 1.0f);
-        AttributeUtils.resetMaxPlayerHealth(player);
-        AttributeUtils.resetPlayerJumpHeight(player);
-        */
-
-        // Notify Client to reset UI
-        // ServerPlayNetworking.send(player, new ResetTriviaPayload(true));
     }
 
     private void resetQuestionState() {
-        usedEasyQuestions.clear();
-        usedNormalQuestions.clear();
-        usedHardQuestions.clear();
+
     }
 
     private void broadcast(MinecraftServer server, String message) {

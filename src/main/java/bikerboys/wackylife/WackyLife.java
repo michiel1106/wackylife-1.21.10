@@ -46,6 +46,7 @@ public class WackyLife implements ModInitializer {
 	public void onInitialize() {
 		ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(QuestionResourceLoader.ID, new QuestionResourceLoader());
 		ModAttachments.register();
+		QuestionManager.registerQuestions();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(WackyLife::serverStarted);
 		ServerLifecycleEvents.SERVER_STARTING.register(WackyLife::serverStarting);
@@ -58,9 +59,12 @@ public class WackyLife implements ModInitializer {
 		PayloadTypeRegistry.playS2C().register(OpenChoicesScreen.ID, OpenChoicesScreen.CODEC);
 		PayloadTypeRegistry.playS2C().register(DropItemS2C.ID, DropItemS2C.CODEC);
 		PayloadTypeRegistry.playS2C().register(RandomSprintS2C.ID, RandomSprintS2C.CODEC);
+		PayloadTypeRegistry.playS2C().register(S2COpenTriviaScreen.ID, S2COpenTriviaScreen.CODEC);
+		PayloadTypeRegistry.playS2C().register(QuestionTimeLeftUpdateS2C.ID, QuestionTimeLeftUpdateS2C.CODEC);
 
 		ModEntities.register();
 		PayloadTypeRegistry.playC2S().register(SendChoices.ID, SendChoices.CODEC);
+		PayloadTypeRegistry.playC2S().register(SubmitAnswerC2S.ID, SubmitAnswerC2S.SUBMIT_ANSWER_CODEC);
 
 		ServerPlayNetworking.registerGlobalReceiver(SendChoices.ID, ((sendChoices, context) -> {
 			Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
@@ -68,6 +72,8 @@ public class WackyLife implements ModInitializer {
 				choices.playerChose(context.player(), sendChoices.choices());
 			}
 		}));
+
+
 
 
 		TaskScheduler.registerTickHandler();
