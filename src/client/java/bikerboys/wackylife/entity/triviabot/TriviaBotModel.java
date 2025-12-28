@@ -73,42 +73,69 @@ public class TriviaBotModel extends EntityModel<TriviaBotRenderState> {
     public TriviaBotModel(ModelPart root) {
         super(root);
 
+        // 1. Get the top-level parent
         this.triviabot = root.getChild("triviabot");
-        this.neckpivot = root.getChild("neckpivot");
-        this.main = root.getChild("main");
-        this.shell = root.getChild("shell");
-        this.expressions = root.getChild("expressions");
-        this.mouth = root.getChild("mouth");
-        this.dots = root.getChild("dots");
-        this.green = root.getChild("green");
-        this.yellow = root.getChild("yellow");
-        this.red = root.getChild("red");
-        this.clock = root.getChild("clock");
-        this.clockhand = root.getChild("clockhand");
-        this.processing = root.getChild("processing");
-        this.one = root.getChild("one");
-        this.two = root.getChild("two");
-        this.three = root.getChild("three");
-        this.angry = root.getChild("angry");
-        this.happy = root.getChild("happy");
-        this.snail = root.getChild("snail");
-        this.beard = root.getChild("beard");
-        this.hat = root.getChild("hat");
-        this.ball = root.getChild("ball");
-        this.body = root.getChild("body");
-        this.righthand = root.getChild("righthand");
-        this.actualhand = root.getChild("actualhand");
-        this.microphone = root.getChild("microphone");
-        this.umbrella = root.getChild("umbrella");
-        this.top = root.getChild("top");
-        this.lefthand = root.getChild("lefthand");
-        this.bag = root.getChild("bag");
-        this.torso = root.getChild("torso");
-        this.bottom = root.getChild("bottom");
-        this.bottomlarge = root.getChild("bottomlarge");
-        this.legs = root.getChild("legs");
 
+        // 2. Get children of triviabot
+        this.neckpivot = this.triviabot.getChild("neckpivot");
+        this.body = this.triviabot.getChild("body");
 
+        // 3. Get children of neckpivot
+        this.main = this.neckpivot.getChild("main");
+
+        // 4. Get children of main
+        this.shell = this.main.getChild("shell");
+        this.expressions = this.main.getChild("expressions");
+        this.beard = this.main.getChild("beard");
+        this.hat = this.main.getChild("hat");
+
+        // 5. Get children of hat
+        this.ball = this.hat.getChild("ball");
+
+        // 6. Get children of expressions
+        this.mouth = this.expressions.getChild("mouth");
+        this.dots = this.expressions.getChild("dots");
+        this.clock = this.expressions.getChild("clock");
+        this.processing = this.expressions.getChild("processing");
+        this.angry = this.expressions.getChild("angry");
+        this.happy = this.expressions.getChild("happy");
+        this.snail = this.expressions.getChild("snail");
+
+        // 7. Get children of dots
+        this.green = this.dots.getChild("green");
+        this.yellow = this.dots.getChild("yellow");
+        this.red = this.dots.getChild("red");
+
+        // 8. Get children of clock
+        this.clockhand = this.clock.getChild("clockhand");
+
+        // 9. Get children of processing
+        this.one = this.processing.getChild("one");
+        this.two = this.processing.getChild("two");
+        this.three = this.processing.getChild("three");
+
+        // 10. Get children of body
+        this.righthand = this.body.getChild("righthand");
+        this.lefthand = this.body.getChild("lefthand");
+        this.torso = this.body.getChild("torso");
+        this.legs = this.body.getChild("legs");
+
+        // 11. Get children of righthand
+        this.actualhand = this.righthand.getChild("actualhand");
+        this.microphone = this.righthand.getChild("microphone");
+        this.umbrella = this.righthand.getChild("umbrella");
+
+        // 12. Get children of umbrella
+        this.top = this.umbrella.getChild("top");
+
+        // 13. Get children of lefthand
+        this.bag = this.lefthand.getChild("bag");
+
+        // 14. Get children of torso
+        this.bottom = this.torso.getChild("bottom");
+        this.bottomlarge = this.torso.getChild("bottomlarge");
+
+        // Animations (Keep these the same)
         glideAnimation = TriviaBotAnimations.glide.createAnimation(root);
         idleAnimation = TriviaBotAnimations.idle.createAnimation(root);
         walkAnimation = TriviaBotAnimations.walk.createAnimation(root);
@@ -125,9 +152,7 @@ public class TriviaBotModel extends EntityModel<TriviaBotRenderState> {
         santaGlideAnimation = TriviaBotAnimations.santa_glide.createAnimation(root);
         santaIdleAnimation = TriviaBotAnimations.santa_idle.createAnimation(root);
         santaWaveAnimation = TriviaBotAnimations.santa_wave.createAnimation(root);
-
     }
-
 
     public static TexturedModelData getTexturedModelData() {
         ModelData modelData = new ModelData();

@@ -4,7 +4,6 @@ import static bikerboys.wackylife.WackyLife.clientHelper;
 import net.fabricmc.api.*;
 import net.fabricmc.loader.api.*;
 import net.minecraft.entity.*;
-import net.minecraft.server.*;
 import net.minecraft.server.network.*;
 import net.minecraft.util.math.*;
 import org.jetbrains.annotations.*;
@@ -16,26 +15,21 @@ public interface PlayerBoundEntity {
     UUID getBoundPlayerUUID();
     void setBoundPlayerUUID(UUID uuid);
     boolean shouldPathfind();
+    ServerPlayerEntity getPlayer();
 
     default boolean hasBoundPlayer() {
         if (getBoundPlayerUUID() == null) return false;
-        if (getBoundPlayer() == null) return false;
+        if (getBoundEntity() == null) return false;
         return true;
     }
 
     default void setBoundPlayer(ServerPlayerEntity player) {
         if (player == null) return;
-        setBoundPlayerUUID(player.getUUID());
+        setBoundPlayerUUID(player.getUuid());
         onSetPlayer(player);
     }
 
-    @Nullable
-    default ServerPlayerEntity getBoundPlayer() {
-        if (isLogicalSide()) {
-            return PlayerUtils.getPlayer(getBoundPlayerUUID());
-        }
-        return null;
-    }
+
 
     static boolean isLogicalSide() {
         if (!isClient()) return true;
@@ -49,16 +43,16 @@ public interface PlayerBoundEntity {
 
     @Nullable
     default LivingEntity getBoundEntity() {
-        if (isLogicalSide()) {
-            ServerPlayerEntity player = PlayerUtils.getPlayer(getBoundPlayerUUID());
+        ServerPlayerEntity player = getPlayer();
 
+        if (player != null) {
             return player;
         }
+
         return null;
     }
 
     default Vec3d getPlayerPos() {
-        if (!isLogicalSide()) return null;
         Entity entity = getBoundEntity();
         if (entity != null) {
             return entity.getEntityPos();

@@ -3,8 +3,13 @@ package bikerboys.wackylife.Wildcard.wildcards;
 import bikerboys.wackylife.Wildcard.Wildcard;
 import bikerboys.wackylife.entity.*;
 import bikerboys.wackylife.entity.triviabot.TriviaBot;
-import bikerboys.wackylife.entity.triviabot.server.trivia.*;
+
+import bikerboys.wackylife.entity.triviabot.server.*;
+import bikerboys.wackylife.mixin.*;
+import bikerboys.wackylife.util.*;
+import de.maxhenkel.voicechat.api.*;
 import net.minecraft.entity.*;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -28,11 +33,6 @@ public class TriviaWildcard extends Wildcard {
     private static final Map<UUID, Integer> botsSpawnedCount = new HashMap<>();
     private static final Random rnd = new Random();
 
-    // --- Question Managers ---
-    public static TriviaQuestionManager easyTrivia;
-    public static TriviaQuestionManager normalTrivia;
-    public static TriviaQuestionManager hardTrivia;
-
     // Tracking used questions to avoid repeats
     private static final List<String> usedEasyQuestions = new ArrayList<>();
     private static final List<String> usedNormalQuestions = new ArrayList<>();
@@ -46,10 +46,6 @@ public class TriviaWildcard extends Wildcard {
         resetQuestionState();
         tickCounter = 0;
 
-        // Initialize Question Managers
-        easyTrivia = new TriviaQuestionManager("./config/lifeseries/wildlife", "easy-trivia.json");
-        normalTrivia = new TriviaQuestionManager("./config/lifeseries/wildlife", "normal-trivia.json");
-        hardTrivia = new TriviaQuestionManager("./config/lifeseries/wildlife", "hard-trivia.json");
 
         broadcast(server, "§7Trivia Bots have been activated! Watch your step.");
     }
@@ -127,27 +123,36 @@ public class TriviaWildcard extends Wildcard {
         }
     }
 
-    public void spawnBotFor(ServerPlayerEntity player) {
+    public static void spawnBotFor(ServerPlayerEntity player) {
+        spawnBotFor(player, TriviaBotPathfinding.getBlockPosNearPlayer(player, player.getBlockPos().add(0,50,0), 10));
+    }
+    public static void spawnBotFor(ServerPlayerEntity player, BlockPos pos) {
+        // 1. Clean up old bot reference
+        resetPlayerOnBotSpawn(player);
+
         ServerWorld world = player.getEntityWorld();
-        // Simple spawn logic: Spawn near player (offset Y slightly up to avoid stuck in floor)
-        BlockPos spawnPos = player.getBlockPos().up();
 
-        TriviaBot bot = ModEntities.TRIVIA_BOT.create(player.getEntityWorld(), SpawnReason.COMMAND); // You might need to adjust this constructor based on your entity class
-
-        if (bot != null) {
-            bot.setPos(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
-        }
+        // 2. Create the entity but DO NOT spawn yet
+        TriviaBot bot = ModEntities.TRIVIA_BOT.create(world, SpawnReason.COMMAND);
 
         if (bot != null) {
+            // 3. Setup data BEFORE it hits the world
+            // This ensures goals have valid data the millisecond they start ticking
+            bot.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
+            bot.serverData.setBoundPlayer(player);
+
+            // 4. Now actually put it in the world
             world.spawnEntity(bot);
 
-            // Setup Bot
-            bot.setBoundPlayer(player); // Assuming this method exists in TriviaBot
             activeBots.put(player.getUuid(), bot);
 
-            // Effects
-            player.playSoundToPlayer(SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER, SoundCategory.MASTER, 0.5f, 1);
-
+            // Sound Notification
+            ((IServerPlayer)player).ls$playNotifySound(
+                    SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
+                    SoundCategory.MASTER,
+                    0.5f,
+                    1
+            );
         }
     }
 
@@ -166,7 +171,7 @@ public class TriviaWildcard extends Wildcard {
             List<Entity> toKill = new ArrayList<>();
             // In Yarn, iterating entities can be tricky depending on version.
             // This is a safe generic approach:
-            for (Entity entity : world.getEntitiesByType(null, e -> e instanceof TriviaBot)) {
+            for (Entity entity : world.getEntitiesByType(ModEntities.TRIVIA_BOT, e -> e instanceof TriviaBot)) {
                 toKill.add(entity);
             }
             toKill.forEach(Entity::discard);
@@ -207,40 +212,4 @@ public class TriviaWildcard extends Wildcard {
         server.getPlayerManager().broadcast(Text.of(message), false);
     }
 
-    // --- Question Getter (Called by TriviaBot entity) ---
-
-    public static bikerboys.wackylife.entity.triviabot.server.trivia.TriviaQuestion getTriviaQuestion(ServerPlayerEntity player) {
-        int difficulty = 1 + rnd.nextInt(3); // 1, 2, or 3
-        try {
-            if (difficulty == 1) return getQuestionFromManager(easyTrivia, usedEasyQuestions);
-            if (difficulty == 2) return getQuestionFromManager(normalTrivia, usedNormalQuestions);
-            return getQuestionFromManager(hardTrivia, usedHardQuestions);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return TriviaQuestion.getDefault(); // Ensure you have a fallback
-        }
-    }
-
-    private static TriviaQuestion getQuestionFromManager(TriviaQuestionManager manager, List<String> usedList) throws IOException {
-        if (manager == null) return TriviaQuestion.getDefault();
-
-        List<TriviaQuestion> available = new ArrayList<>();
-        for (TriviaQuestion q : manager.getTriviaQuestions()) {
-            if (!usedList.contains(q.getQuestion())) {
-                available.add(q);
-            }
-        }
-
-        // If we ran out of unique questions, clear history and allow repeats
-        if (available.isEmpty()) {
-            usedList.clear();
-            available.addAll(manager.getTriviaQuestions());
-        }
-
-        if (available.isEmpty()) return TriviaQuestion.getDefault();
-
-        TriviaQuestion selected = available.get(rnd.nextInt(available.size()));
-        usedList.add(selected.getQuestion());
-        return selected;
-    }
 }

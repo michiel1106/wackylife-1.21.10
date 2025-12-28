@@ -1,0 +1,13 @@
+[
+
+  {
+    "question": "What was the name of the Ravager that killed Jimmy in Limited Life?",
+    "answers": ["Grian", "Sunday Driver", "Bad Boys Big Bad Dog", "The Curse", "Boogeyman"],
+    "correct_answer_index": 0
+  },
+  {
+    "question": "In Third Life, Scar used a clock to convince Bdubs to eliminate Impulse. Where did he get it?",
+    "answers": ["Found it in a chest", "Cleo gave it to him", "He crafted it himself", "Bdubs dropped it", "Impulse dropped it"],
+    "correct_answer_index": 4
+  }
+]

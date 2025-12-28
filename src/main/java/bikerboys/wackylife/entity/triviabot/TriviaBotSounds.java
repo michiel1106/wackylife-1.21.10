@@ -1,6 +1,7 @@
 package bikerboys.wackylife.entity.triviabot;
 
 import bikerboys.wackylife.util.*;
+import net.minecraft.server.*;
 import net.minecraft.sound.*;
 import net.minecraft.util.*;
 
@@ -15,7 +16,7 @@ public class TriviaBotSounds {
     private boolean playedCountdownSound = false;
     private boolean playedCountdownEndingSound = false;
     public boolean playWithoutSource = false;
-    public void playSounds() {
+    public void playSounds(MinecraftServer server) {
         if (introSoundCooldown > 0) introSoundCooldown--;
 
         if (introSoundCooldown == 0 && !bot.interactedWith()) {
@@ -24,22 +25,22 @@ public class TriviaBotSounds {
                 PlayerUtils.playSoundToPlayer(bot.serverData.getBoundPlayer(), sound, 1, 1);//TODO sound
             }
             else {
-                PlayerUtils.playSoundWithSourceToPlayers(PlayerUtils.getAllPlayers(), bot, sound, SoundSource.NEUTRAL, 1, 1);
+                PlayerUtils.playSoundWithSourceToPlayers(server.getPlayerManager().getPlayerList(), bot, sound, SoundCategory.NEUTRAL, 1, 1);
             }
             introSoundCooldown = 830;
         }
 
-        if (!playedCountdownEndingSound && bot.interactedWith() && !bot.submittedAnswer() && !bot.ranOutOfTime() && bot.triviaHandler.getRemainingTicks() <= 676) {
+        if (!playedCountdownEndingSound && bot.interactedWith() && !bot.submittedAnswer() && !bot.ranOutOfTime() /* && bot.triviaHandler.getRemainingTicks() <= 676*/) {
             if (playWithoutSource) {
                 PlayerUtils.playSoundToPlayer(bot.serverData.getBoundPlayer(),
-                        SoundEvent.createVariableRangeEvent(IdentifierHelper.vanilla("wildlife_trivia_suspense_end")),//TODO sound
+                        SoundEvent.of(Identifier.ofVanilla("wildlife_trivia_suspense_end")),
                         0.65f, 1);
             }
             else {
                 PlayerUtils.playSoundWithSourceToPlayers(
-                        PlayerUtils.getAllPlayers(), bot,
-                        SoundEvent.createVariableRangeEvent(IdentifierHelper.vanilla("wildlife_trivia_suspense_end")),
-                        SoundSource.NEUTRAL, 0.65f, 1);
+                        server.getPlayerManager().getPlayerList(), bot,
+                        SoundEvent.of(Identifier.ofVanilla("wildlife_trivia_suspense_end")),
+                        SoundCategory.NEUTRAL, 0.65f, 1);
             }
             playedCountdownEndingSound = true;
             playedCountdownSound = true;
@@ -47,14 +48,14 @@ public class TriviaBotSounds {
         else if (!playedCountdownSound && bot.interactedWith() && !bot.submittedAnswer() && !bot.ranOutOfTime()) {
             if (playWithoutSource) {
                 PlayerUtils.playSoundToPlayer(bot.serverData.getBoundPlayer(),
-                        SoundEvent.createVariableRangeEvent(IdentifierHelper.vanilla("wildlife_trivia_suspense")),//TODO sound
+                        SoundEvent.of(Identifier.ofVanilla("wildlife_trivia_suspense")),//TODO sound
                         0.65f, 1);
             }
             else {
                 PlayerUtils.playSoundWithSourceToPlayers(
-                        PlayerUtils.getAllPlayers(), bot,
-                        SoundEvent.createVariableRangeEvent(IdentifierHelper.vanilla("wildlife_trivia_suspense")),
-                        SoundSource.NEUTRAL, 0.65f, 1);
+                        server.getPlayerManager().getPlayerList(), bot,
+                        SoundEvent.of(Identifier.ofVanilla("wildlife_trivia_suspense")),
+                        SoundCategory.NEUTRAL, 0.65f, 1);
             }
             playedCountdownSound = true;
         }

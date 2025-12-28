@@ -2,6 +2,8 @@ package bikerboys.wackylife;
 
 import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.choices.*;
+import bikerboys.wackylife.entity.*;
+import bikerboys.wackylife.entity.triviabot.*;
 import bikerboys.wackylife.gui.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.util.*;
@@ -59,6 +61,11 @@ public class WackyLifeClient implements ClientModInitializer, IClientHelper {
 	public void onInitializeClient() {
 		ClientTickEvents.END_CLIENT_TICK.register(CLIENT_TICKER);
 		ClientTickEvents.END_WORLD_TICK.register(ChoiceTicker::tick);
+
+
+		EntityModelLayerRegistry.registerModelLayer(TriviaBotModel.TRIVIA_BOT, TriviaBotModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.TRIVIA_BOT, TriviaBotRenderer::new);
+
 
 		ClientPlayNetworking.registerGlobalReceiver(OpenChoicesScreen.ID, ((openChoicesScreen, context) -> {
 			context.client().setScreen(new ChoicesScreen(openChoicesScreen.choices().getFirst(), openChoicesScreen.choices().getLast()));

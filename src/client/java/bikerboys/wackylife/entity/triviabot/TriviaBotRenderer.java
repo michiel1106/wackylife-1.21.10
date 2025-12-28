@@ -4,7 +4,7 @@ package bikerboys.wackylife.entity.triviabot;
 import net.minecraft.client.render.entity.*;
 import net.minecraft.util.*;
 
-public class TriviaBotRenderer extends AgeableMobRenderer<TriviaBot, TriviaBotRenderState, TriviaBotModel> {
+public class TriviaBotRenderer extends AgeableMobEntityRenderer<TriviaBot, TriviaBotRenderState, TriviaBotModel> {
 
     public TriviaBotRenderer(EntityRendererFactory.Context context) {
         super(context, new TriviaBotModel(context.getPart(TriviaBotModel.TRIVIA_BOT)), new TriviaBotModel(context.getPart(TriviaBotModel.TRIVIA_BOT)), 0.45f);
@@ -16,8 +16,7 @@ public class TriviaBotRenderer extends AgeableMobRenderer<TriviaBot, TriviaBotRe
     }
 
     @Override
-
-    public Identifier getTextureLocation(TriviaBotRenderState state) {
+    public Identifier getTexture(TriviaBotRenderState state) {
 
         if (state.santaBot) {
             return TriviaBot.SANTABOT_TEXTURE;
@@ -25,9 +24,14 @@ public class TriviaBotRenderer extends AgeableMobRenderer<TriviaBot, TriviaBotRe
         return TriviaBot.DEFAULT_TEXTURE;
     }
 
+
+
+
+
+
     @Override
-    public void extractRenderState(TriviaBot triviaBot, TriviaBotRenderState state, float f) {
-        super.extractRenderState(triviaBot, state, f);
+    public void updateRenderState(TriviaBot triviaBot, TriviaBotRenderState state, float f) {
+        super.updateRenderState(triviaBot, state, f);
 
         state.glideAnimationState.copyFrom(triviaBot.clientData.glideAnimationState);
         state.idleAnimationState.copyFrom(triviaBot.clientData.idleAnimationState);

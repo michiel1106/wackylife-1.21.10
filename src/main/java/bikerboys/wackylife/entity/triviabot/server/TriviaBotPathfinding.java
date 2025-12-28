@@ -1,6 +1,8 @@
 package bikerboys.wackylife.entity.triviabot.server;
 
+import bikerboys.wackylife.Wildcard.wildcards.*;
 import bikerboys.wackylife.entity.triviabot.*;
+import bikerboys.wackylife.util.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.*;
 import net.minecraft.entity.ai.pathing.*;
@@ -42,8 +44,8 @@ public class TriviaBotPathfinding {
                 level.playSound(null, bot.getX(), bot.getY(), bot.getZ(), SoundEvents.ENTITY_PLAYER_TELEPORT, bot.getSoundCategory(), bot.soundVolume(), bot.getSoundPitch());
                 entityWorld.playSound(null, tpTo.getX(), tpTo.getY(), tpTo.getZ(), SoundEvents.ENTITY_PLAYER_TELEPORT, bot.getSoundCategory(), bot.soundVolume(), bot.getSoundPitch());
 
-                AnimationUtils.spawnTeleportParticles(level, bot.position());
-                AnimationUtils.spawnTeleportParticles(level, tpTo.getCenter());
+                AnimationUtils.spawnTeleportParticles(level, bot.getEntityPos());
+                AnimationUtils.spawnTeleportParticles(level, tpTo.toCenterPos());
                 bot.serverData.despawn();
                 TriviaWildcard.spawnBotFor(boundPlayer, tpTo);
             }
@@ -52,15 +54,15 @@ public class TriviaBotPathfinding {
 
     public static BlockPos getBlockPosNearPlayer(Entity target, BlockPos targetPos, double distanceFromTarget) {
         if (target == null) return targetPos;
-        return LevelUtils.getCloseBlockPos(target.level(), targetPos, distanceFromTarget, 2, false);
+        return LevelUtils.getCloseBlockPos(target.getEntityWorld(), targetPos, distanceFromTarget, 2, false);
     }
 
     public BlockPos getBlockPosNearTarget(Entity target, double distanceFromTarget) {
         if (target == null) return null;
         Vec3d targetPos = bot.serverData.getPlayerPos();
         if (targetPos == null) return null;
-        BlockPos targetBlockPos = BlockPos.containing(targetPos.x, targetPos.y, targetPos.z);
-        return LevelUtils.getCloseBlockPos(target.level(), targetBlockPos, distanceFromTarget, 2, false);
+        BlockPos targetBlockPos = BlockPos.ofFloored(targetPos.x, targetPos.y, targetPos.z);
+        return LevelUtils.getCloseBlockPos(target.getEntityWorld(), targetBlockPos, distanceFromTarget, 2, false);
     }
 
 

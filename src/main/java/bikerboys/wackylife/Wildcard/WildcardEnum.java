@@ -25,7 +25,7 @@ public enum WildcardEnum implements StringIdentifiable {
                 return new Choices();
             }
             case "trivia" -> {
-                return new Empty();
+                return new TriviaWildcard();
             }
             case "empty" -> {
                 return new Empty();

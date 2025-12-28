@@ -3,7 +3,7 @@ package bikerboys.wackylife.entity.triviabot;
 import bikerboys.wackylife.*;
 import bikerboys.wackylife.entity.triviabot.goal.*;
 import bikerboys.wackylife.entity.triviabot.server.*;
-import bikerboys.wackylife.entity.triviabot.server.trivia.*;
+import bikerboys.wackylife.entity.triviabot.trivia.*;
 import net.minecraft.block.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.*;
@@ -15,10 +15,14 @@ import net.minecraft.entity.player.*;
 import net.minecraft.fluid.*;
 import net.minecraft.registry.tag.*;
 import net.minecraft.sound.*;
+import net.minecraft.storage.*;
 import net.minecraft.util.*;
+import net.minecraft.util.dynamic.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.*;
 import net.minecraft.world.explosion.*;
+
+import java.util.*;
 
 public class TriviaBot extends AmbientEntity {
 
@@ -31,12 +35,12 @@ public class TriviaBot extends AmbientEntity {
     public static final float MOVEMENT_SPEED = 0.45f;
     public static final int MAX_DISTANCE = 100;
     public static boolean CAN_START_RIDING = true;
+    public Question question = Question.DEFAULT;
 
     public TriviaBotClientData clientData = new TriviaBotClientData(this);
     public TriviaBotServerData serverData = new TriviaBotServerData(this);
     public TriviaBotSounds sounds = new TriviaBotSounds(this);
     public TriviaBotPathfinding pathfinding = new TriviaBotPathfinding(this);
-    public final TriviaHandler triviaHandler;
     private boolean isSantaBot = false;
 
     private static final TrackedData<Boolean> submittedAnswer = DataTracker.registerData(TriviaBot.class, TrackedDataHandlerRegistry.BOOLEAN);
@@ -52,11 +56,15 @@ public class TriviaBot extends AmbientEntity {
         super(entityType, level);
         setInvulnerable(true);
         setPersistent();
-
-        triviaHandler = new WildLifeTriviaHandler(this);
-
     }
 
+    public void setQuestion(Question question) {
+        this.question = question;
+    }
+
+    public Question getQuestion() {
+        return question;
+    }
 
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
@@ -80,6 +88,46 @@ public class TriviaBot extends AmbientEntity {
 
 
     @Override
+    protected void writeCustomData(WriteView view) {
+        super.writeCustomData(view);
+
+        if (this.question == null) return;
+
+        view.putInt("index", this.question.rightQuestionIndex());
+        view.putString("question", this.question.question());
+
+        if (!this.question.answers().isEmpty()) {
+            WriteView.ListAppender<String> list = view.getListAppender("answers", Codecs.NON_EMPTY_STRING);
+
+            for (String answer : this.question.answers()) {
+                list.add(answer);
+            }
+        }
+    }
+
+
+    @Override
+    protected void readCustomData(ReadView view) {
+        super.readCustomData(view);
+
+        int index = view.getInt("index", 1);
+        String questionText = view.getString("question", "whoopssomethingwentwrong");
+
+        List<String> answers = new ArrayList<>();
+
+        ReadView.TypedListReadView<String> list = view.getTypedListView("answers", Codecs.NON_EMPTY_STRING);
+
+        if (list != null) {
+            // TypedListReadView implies Iterable<T>, so 'element' is directly a String
+            for (String element : list) {
+                answers.add(element);
+            }
+        }
+
+        this.question = new Question(questionText, answers, index);
+    }
+
+    @Override
     public void tick() {
         super.tick();
         if (!getEntityWorld().isClient()) {
@@ -92,12 +140,6 @@ public class TriviaBot extends AmbientEntity {
         Override vanilla things
      */
 
-
-    @Override
-    protected ActionResult interactMob(PlayerEntity player, Hand hand) {
-        return triviaHandler.interactMob(player, hand);
-    }
-
     @Override
     public SoundCategory getSoundCategory() {
         return SoundCategory.PLAYERS;
@@ -107,7 +149,6 @@ public class TriviaBot extends AmbientEntity {
     public Vec3d applyFluidMovingSpeed(double gravity, boolean falling, Vec3d motion) {
         return motion;
     }
-
 
     public boolean isAffectedByFluids() {
         return false;

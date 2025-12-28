@@ -210,7 +210,6 @@ public class WackySeries {
         Wildcard wildcard1 = WildcardEnum.getWildcard(wildcard);
 
 
-
         if (wildcard1 != null) {
 
             activateWildcard(server, wildcard1);

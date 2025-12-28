@@ -10,6 +10,7 @@ import net.minecraft.server.*;
 import net.minecraft.server.network.*;
 import net.minecraft.server.world.*;
 import net.minecraft.util.math.*;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 
@@ -47,36 +48,56 @@ public class TriviaBotServerData implements PlayerBoundEntity {
         return true;
     }
 
+    @Override
+    public ServerPlayerEntity getPlayer() {
+        if (!bot.getEntityWorld().isClient()) {
+            return bot.getEntityWorld().getServer().getPlayerManager().getPlayer(getBoundPlayerUUID());
+        }
+        return null;
+
+    }
+
     public void tick(MinecraftServer server) {
         if (bot.getEntityWorld().isClient()) return;
         if (despawnChecks()) return;
         bot.pathfinding.tick();
-        bot.triviaHandler.tick();
 
         chunkLoading();
         bot.clearStatusEffects();
-        bot.sounds.playSounds();
+        bot.sounds.playSounds(server);
+    }
+
+    @Nullable
+    public ServerPlayerEntity getBoundPlayer() {
+        return getPlayer();
     }
 
     public boolean despawnChecks() {
-        ServerPlayerEntity player = getBoundPlayer();
-        if (player == null || (player.isSpectator() && ScoreboardManager.INSTANCE.isDead(player))) {
-            despawnPlayerChecks++;
-        }
-        if (despawnPlayerChecks > 200) {
-            despawn();
-            return true;
-        }
-        if (bot.age % 10 == 0) {
-            if (WackyLife.wackyLife.getWildcardObj() == WildcardEnum.getWildcard("trivia")) {
-                if (!TriviaWildcard.activeBots.containsValue(bot)) {
+        ServerPlayerEntity player;
+        boolean client = bot.getEntityWorld().isClient();
+
+        if (!client) {
+            player = bot.getEntityWorld().getServer().getPlayerManager().getPlayer(getBoundPlayerUUID());
+
+
+            if (player == null || (player.isSpectator() && ScoreboardManager.INSTANCE.isDead(player))) {
+                despawnPlayerChecks++;
+            }
+            if (despawnPlayerChecks > 200) {
+                despawn();
+                return true;
+            }
+            if (bot.age % 10 == 0) {
+                if (WackyLife.wackyLife.getWildcardObj() != null && WackyLife.wackyLife.getWildcardObj() instanceof TriviaWildcard) {
+                    if (!TriviaWildcard.activeBots.containsValue(bot)) {
+                        despawn();
+                        return true;
+                    }
+                }
+                else {
                     despawn();
                     return true;
                 }
-            }
-            else {
-                despawn();
-                return true;
             }
         }
         return false;
@@ -95,9 +116,7 @@ public class TriviaBotServerData implements PlayerBoundEntity {
 
     public void chunkLoading() {
         if (bot.getEntityWorld() instanceof ServerWorld level) {
-
             level.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(bot.getBlockPos()), 2);
-
         }
     }
 
@@ -105,8 +124,7 @@ public class TriviaBotServerData implements PlayerBoundEntity {
         if (getBoundPlayerUUID() != null) {
             TriviaWildcard.activeBots.remove(getBoundPlayerUUID());
         }
-        if (!bot.getEntityWorld().isClientSide()) {
-
+        if (!bot.getEntityWorld().isClient()) {
             bot.kill((ServerWorld) bot.getEntityWorld());
 
         }

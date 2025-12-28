@@ -1,5 +1,6 @@
 package bikerboys.wackylife.util;
 
+import bikerboys.wackylife.*;
 import static net.minecraft.command.argument.EntityArgumentType.getPlayer;
 import net.minecraft.component.*;
 import net.minecraft.entity.*;
@@ -42,6 +43,18 @@ public class PlayerUtils {
         player.networkHandler.sendPacket(fadePacket);
         TitleS2CPacket titlePacket = new TitleS2CPacket(title);
         player.networkHandler.sendPacket(titlePacket);
+    }
+
+    public static ServerPlayerEntity getPlayer(String name) {
+        if (WackyLife.server == null || name == null) return null;
+        return WackyLife.server.getPlayerManager().getPlayer(name);
+    }
+
+    public static ServerPlayerEntity getPlayer(UUID uuid) {
+        System.out.println("server " + WackyLife.server == null);
+        System.out.println("uuid " + uuid == null);
+        if (WackyLife.server == null || uuid == null) return null;
+        return WackyLife.server.getPlayerManager().getPlayer(uuid);
     }
 
     public static void sendTitleToPlayers(Collection<ServerPlayerEntity> players, Text title, int fadeIn, int stay, int fadeOut) {

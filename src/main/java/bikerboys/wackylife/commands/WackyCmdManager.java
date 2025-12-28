@@ -4,6 +4,8 @@ import bikerboys.wackylife.*;
 import bikerboys.wackylife.Wildcard.*;
 import bikerboys.wackylife.Wildcard.wildcards.*;
 import bikerboys.wackylife.attachements.*;
+import bikerboys.wackylife.entity.triviabot.*;
+import bikerboys.wackylife.entity.triviabot.trivia.*;
 import bikerboys.wackylife.manager.*;
 import bikerboys.wackylife.series.*;
 import bikerboys.wackylife.util.*;
@@ -13,6 +15,7 @@ import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.entity.*;
 import net.minecraft.entity.player.*;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -29,6 +32,10 @@ public class WackyCmdManager {
         var deaths = series.getDeathsManager();
 
         LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal("wackylife");
+
+
+
+
 
         LiteralArgumentBuilder<ServerCommandSource> choiceCommand = CommandManager.literal("choice")
                 // Require permission level 2 (like /gamemode, /give)
@@ -54,6 +61,42 @@ public class WackyCmdManager {
                         )
                 )
         );
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("triviabot")
+                        .then(CommandManager.literal("spawn")
+                                .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .executes(context -> {
+                                            ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "player");
+                                            TriviaWildcard.spawnBotFor(target);
+                                            context.getSource().sendFeedback(() -> Text.literal("Spawned Trivia Bot for " + target.getName().getString()), true);
+                                            return 1;
+                                        }))))
+        );
+
+        root.then(CommandManager.literal("debug")
+                .then(CommandManager.literal("setquestion")
+                        .then(CommandManager.argument("entity", EntityArgumentType.entity())
+                                .then(CommandManager.argument("index", IntegerArgumentType.integer())
+                                        .executes(context -> {
+                                            int index = IntegerArgumentType.getInteger(context, "index");
+                                            Entity entity = EntityArgumentType.getEntity(context, "entity");
+                                            if (entity instanceof TriviaBot bot) {
+                                                try {
+                                                    List<Question> questions = QuestionManager.Questions;
+                                                    System.out.println(questions);
+                                                    Question question = QuestionManager.Questions.get(index);
+                                                    bot.setQuestion(question);
+                                                } catch (Exception e) {
+                                                    context.getSource().sendError(Text.literal("Prolly out of bounds"));
+                                                }
+
+
+                                            }
+
+                                            return index;
+                                        })))));
 
         // --- /wackylife choice list <player> ---
         choiceCommand.then(CommandManager.literal("list")
