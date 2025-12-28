@@ -137,9 +137,8 @@ public class TriviaBot extends AmbientEntity {
     @Override
     public void tick() {
         super.tick();
-        if (!getEntityWorld().isClient()) {
-            serverData.tick(this.getEntityWorld().getServer());
-        }
+        serverData.tick(this.getEntityWorld().getServer());
+
         clientData.tick();
         triviaHandler.tick();
     }
@@ -221,6 +220,8 @@ public class TriviaBot extends AmbientEntity {
         builder.add(gliding, false);
         builder.add(analyzing, -1);
         builder.add(santaBot, isSantaBot);
+        builder.add(waving, -1);
+        builder.add(leaving, false);
     }
 
     public void setRanOutOfTime(boolean value) {

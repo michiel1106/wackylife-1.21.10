@@ -169,6 +169,7 @@ public class TriviaBotAnimations {
                     new Keyframe(4.375F, AnimationHelper.createRotationalVector(2.497F, -0.109F, 2.497F), Transformation.Interpolations.CUBIC),
                     new Keyframe(4.5F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.LINEAR)
             ))
+
             .addBoneAnimation("torso", new Transformation(Transformation.Targets.ROTATE,
                     new Keyframe(0.0F, AnimationHelper.createRotationalVector(0.0F, 0.0F, 0.0F), Transformation.Interpolations.CUBIC),
                     new Keyframe(0.375F, AnimationHelper.createRotationalVector(1.0F, 0.0F, 6.0F), Transformation.Interpolations.CUBIC),

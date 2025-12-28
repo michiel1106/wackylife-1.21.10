@@ -1,7 +1,9 @@
 package bikerboys.wackylife.gui.trivia;
 
 import bikerboys.wackylife.entity.triviabot.*;
+import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.util.*;
+import net.fabricmc.fabric.api.client.networking.v1.*;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.*;
 import static net.minecraft.client.gui.screen.ingame.InventoryScreen.drawEntity;
@@ -92,7 +94,8 @@ public class QuizScreen extends DefaultScreen {
         if (click.button() == 0) {
             for (int i = 0; i < answerRects.size(); i++) {
                 if (answerRects.get(i).contains(mouseX, mouseY)) {
-                   //     if (this.minecraft != null) this.minecraft.setScreen(new ConfirmQuizAnswerScreen(this, i));
+                    //if (this.minecraft != null) this.minecraft.setScreen(new ConfirmQuizAnswerScreen(this, i));
+                    ClientPlayNetworking.send(new SubmitAnswerC2S(i));
                     return true;
                 }
             }

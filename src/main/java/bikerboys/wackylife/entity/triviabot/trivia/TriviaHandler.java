@@ -9,17 +9,26 @@ import net.minecraft.util.*;
 
 import java.util.*;
 
-public class TriviaHandler {
-    private TriviaBot bot;
-    private int interactedAtAge = 0;
-    private int timeToComplete = 6000; // in ticks
+public class TriviaHandler extends AbstractTrivia{
+    protected TriviaBot bot;
+    protected int interactedAtAge = 0;
+    protected int timeToComplete = 6000; // in ticks
+    protected int difficulty = 0;
 
     public TriviaHandler(TriviaBot bot) {
+        super(bot);
         this.bot = bot;
 
         ServerPlayNetworking.registerGlobalReceiver(SubmitAnswerC2S.ID, ((payload, context) -> {
-            UUID uuid = context.player().getUuid();
-            if (uuid.equals(bot.serverData.getBoundPlayerUUID())) {
+
+            UUID playerUUID = context.player().getUuid();
+            UUID boundUUID = bot.serverData.getBoundPlayer().getUuid();
+
+            System.out.println("Packet received! Player UUID: " + playerUUID + ", Bound UUID: " + boundUUID);
+            System.out.println("UUIDs match: " + playerUUID.equals(boundUUID));
+
+            if (playerUUID.equals(boundUUID)) {
+                System.out.println("Calling handleAnswer with index: " + payload.index());
                 handleAnswer(payload.index());
             }
         }));
@@ -39,7 +48,11 @@ public class TriviaHandler {
             return ActionResult.PASS;
         }
 
-        if (!bot.canSumbitAnswer()) {
+        if (bot.submittedAnswer()) {
+            return ActionResult.PASS;
+        }
+
+        if (bot.interactedWith() && getRemainingTicks() <= 0) {
             return ActionResult.PASS;
         }
 
@@ -57,6 +70,11 @@ public class TriviaHandler {
         sendTimeUpdatePacket();
         ServerPlayNetworking.send(boundPlayer, new S2COpenTriviaScreen(bot.getQuestion(), bot.getUuid()));
         bot.setInteractedWith(true);
+    }
+
+    @Override
+    Pair<Integer, Question> generateTrivia(ServerPlayerEntity boundPlayer) {
+        return new Pair<Integer, Question>(1, Question.DEFAULT);
     }
 
     public void tick() {
@@ -100,7 +118,7 @@ public class TriviaHandler {
                 if (!bot.ranOutOfTime()) {
                     ServerPlayerEntity boundPlayer = bot.serverData.getBoundPlayer();
                     if (boundPlayer != null) {
-                        // Notify player time is up - they didn't answer
+                        // Time expired without answer
                     }
                 }
                 bot.setRanOutOfTime(true);
@@ -110,18 +128,19 @@ public class TriviaHandler {
 
     public boolean handleAnswer(int answerIndex) {
         if (bot.getEntityWorld().isClient()) return false;
-        if (!bot.canSumbitAnswer()) return false;
+        if (bot.submittedAnswer()) return false;
 
         bot.setSubmittedAnswer(true);
-        bot.setAnalyzingTime(42); // Start animation countdown
+        bot.setAnalyzingTime(42);
+
+        System.out.println("Answer submitted! Analyzing time set to: " + bot.getAnalyzingTime());
 
         if (answerIndex == bot.getQuestion().rightQuestionIndex()) {
-            onSucceed();
-            bot.setAnsweredRight(true);
+            answeredCorrect();
         } else {
-            onFail();
-            bot.setAnsweredRight(false);
+            answeredIncorrect();
         }
+
 
         return true;
     }
@@ -139,20 +158,24 @@ public class TriviaHandler {
         return timeToComplete - ticksSinceStart;
     }
 
-    private Question generateQuestion(ServerPlayerEntity boundPlayer) {
+    protected Question generateQuestion(ServerPlayerEntity boundPlayer) {
         return bot.getQuestion();
     }
 
-    private void setTimeBasedOnDifficulty() {
+    protected void setTimeBasedOnDifficulty() {
         timeToComplete = 6000;
     }
 
-    private void onSucceed() {
+    public void answeredCorrect() {
+        System.out.println("succeed!");
+        bot.setAnsweredRight(true);
         ServerPlayerEntity player = bot.serverData.getBoundPlayer();
         if (player == null) return;
     }
 
-    private void onFail() {
+    public void answeredIncorrect() {
+        System.out.println("fail :(");
+        bot.setAnsweredRight(false);
         ServerPlayerEntity player = bot.serverData.getBoundPlayer();
         if (player == null) return;
     }

@@ -68,6 +68,7 @@ public class WackyCmdManager {
                                             ServerPlayerEntity target = EntityArgumentType.getPlayer(context, "player");
                                             TriviaWildcard.spawnBotFor(target);
                                             context.getSource().sendFeedback(() -> Text.literal("Spawned Trivia Bot for " + target.getName().getString()), true);
+
                                             return 1;
                                         }))))
         );

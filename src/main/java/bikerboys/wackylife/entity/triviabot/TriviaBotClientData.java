@@ -24,56 +24,56 @@ public class TriviaBotClientData {
     public final AnimationState santaGlideAnimation = new AnimationState();
     public final AnimationState santaIdleAnimation = new AnimationState();
     public final AnimationState santaWaveAnimation = new AnimationState();
+
     public void tick() {
         if (!bot.getEntityWorld().isClient()) return;
         updateAnimations();
     }
 
-
     private boolean lastSubmittedAnswer = false;
     private boolean lastRanOutOfTime = false;
+
     public void updateAnimations() {
+        // Start analyzing when answer is first submitted
         if (bot.submittedAnswer() && !lastSubmittedAnswer) {
             pauseAllAnimations("analyzing");
-            analyzingAnimationState.start(bot.age);
+            analyzingAnimationState.startIfNotRunning(bot.age);
         }
 
-        if (bot.ranOutOfTime() && !bot.santaBot()) {
-            pauseAllAnimations("snail_transform");
-            if (!lastRanOutOfTime) {
-                snailTransformAnimationState.start(bot.age);
-            }
-        }
-        else if (bot.getAnalyzingTime() > 0) {
+        // Keep analyzing animation while analyzing time > 0
+        if (bot.getAnalyzingTime() > 0) {
             pauseAllAnimations("analyzing");
         }
+        // Switch to correct/incorrect when analyzing is done
         else if (bot.submittedAnswer()) {
             if (bot.getAnalyzingTime() == 0) {
                 if (bot.answeredRight()) {
                     pauseAllAnimations("answer_correct");
-                    answerCorrectAnimationState.start(bot.age);
+                    answerCorrectAnimationState.startIfNotRunning(bot.age);
                 }
                 else {
                     pauseAllAnimations("answer_incorrect");
-                    answerIncorrectAnimationState.start(bot.age);
+                    answerIncorrectAnimationState.startIfNotRunning(bot.age);
                 }
             }
         }
+        // Handle waiting for answer
         else if (bot.interactedWith()) {
             pauseAllAnimations("countdown");
-            countdownAnimationState.start(bot.age);
+            countdownAnimationState.startIfNotRunning(bot.age);
         }
+        // Handle movement/idle
         else if (bot.isBotGliding()) {
             pauseAllAnimations("glide");
-            glideAnimationState.start(bot.age);
+            glideAnimationState.startIfNotRunning(bot.age);
         }
         else if (bot.limbAnimator.isLimbMoving() && bot.limbAnimator.getSpeed() > 0.02) {
             pauseAllAnimations("walk");
-            walkAnimationState.start(bot.age);
+            walkAnimationState.startIfNotRunning(bot.age);
         }
         else {
             pauseAllAnimations("idle");
-            idleAnimationState.start(bot.age);
+            idleAnimationState.startIfNotRunning(bot.age);
         }
 
         lastSubmittedAnswer = bot.submittedAnswer();
