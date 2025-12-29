@@ -86,6 +86,75 @@ public class ModAttachments {
         player.setAttached(CHOICE_ATTACHMENT, finalAttachment);
     }
 
+    public static void setPositiveChoice(PlayerEntity player, Choice newPositiveChoice) {
+        if (player.getEntityWorld().isClient()) {
+            return;
+        }
+
+        World world = player.getEntityWorld();
+
+        ChoiceAttachment oldAttachment = getChoice(player);
+        Choice oldPositive = ChoiceRegistry.get(oldAttachment.positiveChoiceId());
+
+        ChoiceAttachment tempNewAttachment = oldAttachment.setChoices(
+                newPositiveChoice.getId(),
+                oldAttachment.negativeChoiceId()
+        );
+
+        if (oldPositive != null && !oldPositive.getId().equals(newPositiveChoice.getId())) {
+            oldPositive.onRemoval(world, player, oldAttachment.positiveData());
+        }
+
+        NbtCompound newPosData = tempNewAttachment.positiveData();
+        NbtCompound negData = tempNewAttachment.negativeData();
+
+        newPositiveChoice.onAddition(world, player, newPosData);
+
+        ChoiceAttachment finalAttachment = new ChoiceAttachment(
+                tempNewAttachment.positiveChoiceId(),
+                tempNewAttachment.negativeChoiceId(),
+                newPosData,
+                negData
+        );
+
+        player.setAttached(CHOICE_ATTACHMENT, finalAttachment);
+    }
+
+
+    public static void setNegativeChoice(PlayerEntity player, Choice newNegativeChoice) {
+        if (player.getEntityWorld().isClient()) {
+            return;
+        }
+
+        World world = player.getEntityWorld();
+
+        ChoiceAttachment oldAttachment = getChoice(player);
+        Choice oldNegative = ChoiceRegistry.get(oldAttachment.negativeChoiceId());
+
+        ChoiceAttachment tempNewAttachment = oldAttachment.setChoices(
+                oldAttachment.positiveChoiceId(),
+                newNegativeChoice.getId()
+        );
+
+        if (oldNegative != null && !oldNegative.getId().equals(newNegativeChoice.getId())) {
+            oldNegative.onRemoval(world, player, oldAttachment.negativeData());
+        }
+
+        NbtCompound posData = tempNewAttachment.positiveData();
+        NbtCompound newNegData = tempNewAttachment.negativeData();
+
+        newNegativeChoice.onAddition(world, player, newNegData);
+
+        ChoiceAttachment finalAttachment = new ChoiceAttachment(
+                tempNewAttachment.positiveChoiceId(),
+                tempNewAttachment.negativeChoiceId(),
+                posData,
+                newNegData
+        );
+
+        player.setAttached(CHOICE_ATTACHMENT, finalAttachment);
+    }
+
 
     /**
      * Call this from your mod's main initializer to ensure the

@@ -94,8 +94,7 @@ public class QuizScreen extends DefaultScreen {
         if (click.button() == 0) {
             for (int i = 0; i < answerRects.size(); i++) {
                 if (answerRects.get(i).contains(mouseX, mouseY)) {
-                    //if (this.minecraft != null) this.minecraft.setScreen(new ConfirmQuizAnswerScreen(this, i));
-                    ClientPlayNetworking.send(new SubmitAnswerC2S(i));
+                    if (this.minecraft != null) this.minecraft.setScreen(new ConfirmQuizAnswerScreen(this, i));
                     return true;
                 }
             }

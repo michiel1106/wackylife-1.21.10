@@ -34,7 +34,6 @@ public class TriviaBotServerData implements PlayerBoundEntity {
 
     @Override
     public void setBoundPlayerUUID(UUID uuid) {
-        System.out.println("setboundpalyeruuid" + uuid);
         _boundPlayerUUID = uuid;
     }
 

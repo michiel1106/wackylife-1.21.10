@@ -27,13 +27,18 @@ public class TriviaWildcard extends Wildcard {
 
     // --- Configuration ---
     public static final int BOTS_PER_PLAYER = 5;
-    public static final int SPAWN_INTERVAL_TICKS = 600; // Try spawn every 30 seconds
-    private int tickCounter = 0;
+    public static final int MIN_SPAWN_INTERVAL_TICKS = 5000;  // 250 seconds
+    public static final int MAX_SPAWN_INTERVAL_TICKS = 8000;  // 400 seconds
+    private static final Random rnd = new Random();
 
     // --- State ---
     public static final Map<UUID, TriviaBot> activeBots = new HashMap<>();
     private static final Map<UUID, Integer> botsSpawnedCount = new HashMap<>();
-    private static final Random rnd = new Random();
+    private static final Map<UUID, Integer> playerSpawnTimers = new HashMap<>();
+    private static final Map<UUID, Integer> playerSpawnIntervals = new HashMap<>();
+
+    // Cleanup counter (not per-player)
+    private int cleanupCounter = 0;
 
 
 
@@ -41,33 +46,56 @@ public class TriviaWildcard extends Wildcard {
     public void onActivate(MinecraftServer server) {
         activeBots.clear();
         botsSpawnedCount.clear();
+        playerSpawnTimers.clear();
+        playerSpawnIntervals.clear();
+        cleanupCounter = 0;
         resetQuestionState();
-        tickCounter = 0;
-        System.out.println(tickCounter);
-    }
-
-    public void setTickCounter(int tickCounter) {
-        this.tickCounter = tickCounter;
-
-    }
-
-    public int getTickCounter() {
-        return tickCounter;
     }
 
     @Override
     public void tick(MinecraftServer server) {
-        tickCounter++;
-
-        // 1. Cleanup Dead Bots from Map
-        if (tickCounter % 200 == 0) { // Every 10 seconds
+        // 1. Cleanup Dead Bots from Map (every 10 seconds)
+        cleanupCounter++;
+        if (cleanupCounter >= 200) {
+            cleanupCounter = 0;
             cleanupDeadBots();
         }
 
-        // 2. Try Spawning Bots
-        if (tickCounter >= SPAWN_INTERVAL_TICKS) {
-            tickCounter = 0;
-            trySpawnBots(server);
+        // 2. Update per-player spawn timers
+        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+            UUID uuid = player.getUuid();
+
+            // Initialize timers for new players
+            if (!playerSpawnTimers.containsKey(uuid)) {
+                playerSpawnTimers.put(uuid, 0);
+                playerSpawnIntervals.put(uuid, getRandomSpawnInterval());
+            }
+
+            // Skip spectators
+            if (player.isSpectator()) continue;
+
+            // Increment this player's timer
+            int currentTimer = playerSpawnTimers.get(uuid) + 1;
+            playerSpawnTimers.put(uuid, currentTimer);
+
+            int spawnInterval = playerSpawnIntervals.get(uuid);
+
+            // Check if it's time to spawn for this player
+            if (currentTimer >= spawnInterval) {
+                int currentCount = botsSpawnedCount.getOrDefault(uuid, 0);
+
+                // If they haven't reached the cap and don't have an active bot
+                if (currentCount < BOTS_PER_PLAYER) {
+                    if (!activeBots.containsKey(uuid) || !activeBots.get(uuid).isAlive()) {
+                        spawnBotFor(player, QuestionManager.getRandomQuestion());
+                        botsSpawnedCount.put(uuid, currentCount + 1);
+                    }
+                }
+
+                // Reset timer and generate new interval for this player
+                playerSpawnTimers.put(uuid, 0);
+                playerSpawnIntervals.put(uuid, getRandomSpawnInterval());
+            }
         }
     }
 
@@ -81,23 +109,34 @@ public class TriviaWildcard extends Wildcard {
 
         activeBots.clear();
         botsSpawnedCount.clear();
+        playerSpawnTimers.clear();
+        playerSpawnIntervals.clear();
         resetQuestionState();
     }
 
     @Override
     public void onPlayerJoin(ServerPlayerEntity player) {
+        UUID uuid = player.getUuid();
 
-        if (activeBots.containsKey(player.getUuid())) {
-            TriviaBot bot = activeBots.get(player.getUuid());
+        // Initialize timers for joining player
+        if (!playerSpawnTimers.containsKey(uuid)) {
+            playerSpawnTimers.put(uuid, 0);
+            playerSpawnIntervals.put(uuid, getRandomSpawnInterval());
+        }
+
+        if (activeBots.containsKey(uuid)) {
+            TriviaBot bot = activeBots.get(uuid);
             if (bot == null || !bot.isAlive()) {
-                activeBots.remove(player.getUuid());
+                activeBots.remove(uuid);
             }
         }
     }
 
     @Override
     public void onPlayerLeave(ServerPlayerEntity player) {
-
+        UUID uuid = player.getUuid();
+        playerSpawnTimers.remove(uuid);
+        playerSpawnIntervals.remove(uuid);
     }
 
     @Override
@@ -105,24 +144,8 @@ public class TriviaWildcard extends Wildcard {
         return "Trivia Bots";
     }
 
-
-    private void trySpawnBots(MinecraftServer server) {
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            // Check if player is alive/valid (Spectators shouldn't get bots)
-            if (player.isSpectator()) continue;
-
-            UUID uuid = player.getUuid();
-            int currentCount = botsSpawnedCount.getOrDefault(uuid, 0);
-
-            // If they haven't reached the cap
-            if (currentCount < BOTS_PER_PLAYER) {
-                // If they don't currently have an active bot haunting them
-                if (!activeBots.containsKey(uuid) || !activeBots.get(uuid).isAlive()) {
-                    spawnBotFor(player, QuestionManager.getRandomQuestion());
-                    botsSpawnedCount.put(uuid, currentCount + 1);
-                }
-            }
-        }
+    private static int getRandomSpawnInterval() {
+        return MIN_SPAWN_INTERVAL_TICKS + rnd.nextInt(MAX_SPAWN_INTERVAL_TICKS - MIN_SPAWN_INTERVAL_TICKS + 1);
     }
 
     public static void spawnBotFor(ServerPlayerEntity player) {
@@ -140,7 +163,6 @@ public class TriviaWildcard extends Wildcard {
                 bot.triviaHandler.handleAnswer(answer);
             }
         }
-
     }
 
     public static void spawnBotFor(ServerPlayerEntity player, BlockPos pos) {
@@ -212,7 +234,6 @@ public class TriviaWildcard extends Wildcard {
         }
     }
 
-
     public static void resetPlayerOnBotSpawn(ServerPlayerEntity player) {
         if (activeBots.containsKey(player.getUuid())) {
             TriviaBot bot = activeBots.get(player.getUuid());
@@ -220,7 +241,6 @@ public class TriviaWildcard extends Wildcard {
                 bot.discard();
             }
         }
-
     }
 
     private void resetQuestionState() {
@@ -231,4 +251,11 @@ public class TriviaWildcard extends Wildcard {
         server.getPlayerManager().broadcast(Text.of(message), false);
     }
 
+    public int getTickCounter(ServerPlayerEntity player) {
+        return playerSpawnTimers.get(player.getUuid());
+    }
+
+    public void setTickCounter(ServerPlayerEntity player ,int amount) {
+        playerSpawnTimers.put(player.getUuid(), amount);
+    }
 }
