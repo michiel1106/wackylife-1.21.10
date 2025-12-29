@@ -1,9 +1,12 @@
 package bikerboys.wackylife.entity.triviabot.trivia;
 
+import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.entity.triviabot.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.util.*;
+import bikerboys.wackylife.wyr.choice.*;
 import net.fabricmc.fabric.api.networking.v1.*;
+import net.fabricmc.loader.impl.discovery.*;
 import net.minecraft.entity.player.*;
 import net.minecraft.server.network.*;
 import net.minecraft.sound.*;
@@ -90,7 +93,7 @@ public class TriviaHandler extends AbstractTrivia{
         return ActionResult.SUCCESS;
     }
     public Pair<Integer, Question> generateTrivia(ServerPlayerEntity boundPlayer) {
-        return new Pair<>(2, Question.DEFAULT);
+        return new Pair<>(2, bot.question);
         //return TriviaWildcard.getTriviaQuestion(boundPlayer);
     }
 
@@ -128,8 +131,14 @@ public class TriviaHandler extends AbstractTrivia{
     private void blessPlayer() {
         ServerPlayerEntity boundPlayer = bot.serverData.getBoundPlayer();
 
+
         if (boundPlayer != null) {
-            boundPlayer.sendMessage(Text.literal("yay, succeed!"), true);
+            ChoiceAttachment choice = ModAttachments.getChoice(boundPlayer);
+            if (choice != null) {
+                Choice positiveChoice = ChoiceRegistry.get(ChoiceRegistry.getRandomChoicePairs().getFirst().positiveChoice());
+                Choice negativeChoice = ChoiceRegistry.get(choice.negativeChoiceId());
+                ModAttachments.setChoice(boundPlayer, positiveChoice, negativeChoice);
+            }
         }
     }
 
@@ -148,7 +157,12 @@ public class TriviaHandler extends AbstractTrivia{
         ServerPlayerEntity boundPlayer = bot.serverData.getBoundPlayer();
 
         if (boundPlayer != null) {
-            boundPlayer.sendMessage(Text.literal("whoops, fail!"), true);
+            ChoiceAttachment choice = ModAttachments.getChoice(boundPlayer);
+            if (choice != null) {
+                Choice positiveChoice = ChoiceRegistry.get(choice.positiveChoiceId());
+                Choice negativeChoice = ChoiceRegistry.get(ChoiceRegistry.getRandomChoicePairs().getFirst().negativeChoice());
+                ModAttachments.setChoice(boundPlayer, positiveChoice, negativeChoice);
+            }
         }
     }
 

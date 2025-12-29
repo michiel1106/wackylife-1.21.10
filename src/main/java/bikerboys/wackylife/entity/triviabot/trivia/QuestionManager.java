@@ -20,6 +20,13 @@ public class QuestionManager {
         }
     }
 
+    public static Question getRandomQuestion() {
+        if (!questions.isEmpty()) {
+            return questions.get(random.nextInt(questions.size()));
+        }
+        return Question.DEFAULT;
+    }
+
 
     public static void registerQuestions() {
     }

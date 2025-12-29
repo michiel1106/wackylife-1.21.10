@@ -5,6 +5,7 @@ import bikerboys.wackylife.entity.*;
 import bikerboys.wackylife.entity.triviabot.TriviaBot;
 
 import bikerboys.wackylife.entity.triviabot.server.*;
+import bikerboys.wackylife.entity.triviabot.trivia.*;
 import bikerboys.wackylife.mixin.*;
 import bikerboys.wackylife.util.*;
 import de.maxhenkel.voicechat.api.*;
@@ -42,6 +43,16 @@ public class TriviaWildcard extends Wildcard {
         botsSpawnedCount.clear();
         resetQuestionState();
         tickCounter = 0;
+        System.out.println(tickCounter);
+    }
+
+    public void setTickCounter(int tickCounter) {
+        this.tickCounter = tickCounter;
+
+    }
+
+    public int getTickCounter() {
+        return tickCounter;
     }
 
     @Override
@@ -107,7 +118,7 @@ public class TriviaWildcard extends Wildcard {
             if (currentCount < BOTS_PER_PLAYER) {
                 // If they don't currently have an active bot haunting them
                 if (!activeBots.containsKey(uuid) || !activeBots.get(uuid).isAlive()) {
-                    spawnBotFor(player);
+                    spawnBotFor(player, QuestionManager.getRandomQuestion());
                     botsSpawnedCount.put(uuid, currentCount + 1);
                 }
             }
@@ -116,6 +127,10 @@ public class TriviaWildcard extends Wildcard {
 
     public static void spawnBotFor(ServerPlayerEntity player) {
         spawnBotFor(player, TriviaBotPathfinding.getBlockPosNearPlayer(player, player.getBlockPos().add(0, 50, 0), 10));
+    }
+
+    public static void spawnBotFor(ServerPlayerEntity player, Question question) {
+        spawnBotFor(player, TriviaBotPathfinding.getBlockPosNearPlayer(player, player.getBlockPos().add(0, 50, 0), 10), question);
     }
 
     public static void handleAnswer(ServerPlayerEntity player, int answer) {
@@ -138,6 +153,31 @@ public class TriviaWildcard extends Wildcard {
         if (bot != null) {
             bot.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
             bot.serverData.setBoundPlayer(player);
+            world.spawnEntity(bot);
+
+            activeBots.put(player.getUuid(), bot);
+
+            // Sound Notification
+            ((IServerPlayer) player).ls$playNotifySound(
+                    SoundEvents.ENTITY_LIGHTNING_BOLT_THUNDER,
+                    SoundCategory.MASTER,
+                    0.5f,
+                    1
+            );
+        }
+    }
+
+    public static void spawnBotFor(ServerPlayerEntity player, BlockPos pos, Question question) {
+        resetPlayerOnBotSpawn(player);
+
+        ServerWorld world = player.getEntityWorld();
+
+        TriviaBot bot = ModEntities.TRIVIA_BOT.create(world, SpawnReason.COMMAND);
+
+        if (bot != null) {
+            bot.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
+            bot.serverData.setBoundPlayer(player);
+            bot.setQuestion(question);
             world.spawnEntity(bot);
 
             activeBots.put(player.getUuid(), bot);

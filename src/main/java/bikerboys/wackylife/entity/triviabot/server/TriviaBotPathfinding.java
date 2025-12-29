@@ -2,6 +2,7 @@ package bikerboys.wackylife.entity.triviabot.server;
 
 import bikerboys.wackylife.Wildcard.wildcards.*;
 import bikerboys.wackylife.entity.triviabot.*;
+import bikerboys.wackylife.entity.triviabot.trivia.*;
 import bikerboys.wackylife.util.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.*;
@@ -36,6 +37,7 @@ public class TriviaBotPathfinding {
         if (bot.getEntityWorld().isClient()) return;
         ServerPlayerEntity boundPlayer = bot.serverData.getBoundPlayer();
         Entity boundEntity = bot.serverData.getBoundEntity();
+        Question question = bot.question;
         if (boundEntity == null) return;
         if (bot.getEntityWorld() instanceof ServerWorld level) {
             if (boundEntity.getEntityWorld() instanceof ServerWorld entityWorld) {
@@ -47,7 +49,8 @@ public class TriviaBotPathfinding {
                 AnimationUtils.spawnTeleportParticles(level, bot.getEntityPos());
                 AnimationUtils.spawnTeleportParticles(level, tpTo.toCenterPos());
                 bot.serverData.despawn();
-                TriviaWildcard.spawnBotFor(boundPlayer, tpTo);
+
+                TriviaWildcard.spawnBotFor(boundPlayer, tpTo, question);
             }
         }
     }

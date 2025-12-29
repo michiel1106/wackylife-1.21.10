@@ -61,7 +61,7 @@ public class WackyCmdManager {
 
         root.then(CommandManager.literal("wildcard")
                 .requires(source -> source.hasPermissionLevel(2))
-                .then(CommandManager.literal("triviabot")
+                .then(CommandManager.literal("trivia")
                         .then(CommandManager.literal("spawn")
                                 .then(CommandManager.argument("player", EntityArgumentType.player())
                                         .executes(context -> {
@@ -175,6 +175,32 @@ public class WackyCmdManager {
                                     return 1;
                                 })))
         );
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("trivia")
+                        .then(CommandManager.literal("time")
+                                .executes(context -> {
+                                    if (WackyLife.wackyLife.getWildcardObj() instanceof TriviaWildcard triviaWildcard) {
+                                        context.getSource().getPlayer().sendMessage(Text.literal("Current cooldown for the next triviabot: " + triviaWildcard.getTickCounter()));
+                                    } else {
+                                        context.getSource().getPlayer().sendMessage(Text.literal("Current wildcard isnt trivia or isnt activated. Please activate it first."));
+                                    }
+                                    return 1;
+                                })
+                                .then(CommandManager.literal("set")
+                                        .then(CommandManager.argument("time", IntegerArgumentType.integer())
+                                                .executes(context -> {
+                                                    int time = IntegerArgumentType.getInteger(context, "time");
+
+                                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                                    if (wildcardObj instanceof TriviaWildcard triviaWildcard) {
+                                                        triviaWildcard.setTickCounter(time);
+                                                    }
+
+
+                                                    return time;
+                                                }))))));
 
         root.then(CommandManager.literal("wildcard")
                 .requires(source -> source.hasPermissionLevel(2))
