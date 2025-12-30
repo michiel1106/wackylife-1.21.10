@@ -7,6 +7,7 @@ public enum WildcardEnum implements StringIdentifiable {
     WACKY_SKINS("wackyskins"),
     CHOICES("choices"),
     TRIVIA("trivia"),
+    SOULBOUND("soulbound"),
     EMPTY("empty");
 
 
@@ -26,6 +27,9 @@ public enum WildcardEnum implements StringIdentifiable {
             }
             case "trivia" -> {
                 return new TriviaWildcard();
+            }
+            case "soulbound" -> {
+                return new SoulboundWildcard();
             }
             case "empty" -> {
                 return new Empty();

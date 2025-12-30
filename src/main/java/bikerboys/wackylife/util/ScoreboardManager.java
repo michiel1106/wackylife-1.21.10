@@ -66,7 +66,7 @@ public class ScoreboardManager {
     public boolean isDead(ServerPlayerEntity player) {
         int lives = getLives(player, player.getEntityWorld().getServer());
 
-        if (lives >= 1) {
+        if (lives <= 0) {
             return true;
         }
 
