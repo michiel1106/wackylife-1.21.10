@@ -136,7 +136,7 @@ public class TriviaHandler extends AbstractTrivia{
             ChoiceAttachment choice = ModAttachments.getChoice(boundPlayer);
             if (choice != null) {
                 Choice positiveChoice = ChoiceRegistry.get(ChoiceRegistry.getRandomChoicePairs().getFirst().positiveChoice());
-                ModAttachments.setPositiveChoice(boundPlayer, positiveChoice);
+                ModAttachments.setChoice(boundPlayer, positiveChoice, ChoiceRegistry.get("empty_neg"));
             }
         }
     }
@@ -159,7 +159,7 @@ public class TriviaHandler extends AbstractTrivia{
             ChoiceAttachment choice = ModAttachments.getChoice(boundPlayer);
             if (choice != null) {
                 Choice negativeChoice = ChoiceRegistry.get(ChoiceRegistry.getRandomChoicePairs().getFirst().negativeChoice());
-                ModAttachments.setNegativeChoice(boundPlayer, negativeChoice);
+                ModAttachments.setChoice(boundPlayer, ChoiceRegistry.get("empty_pos"), negativeChoice);
             }
         }
     }

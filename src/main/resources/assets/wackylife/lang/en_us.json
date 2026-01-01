@@ -36,6 +36,9 @@
   "choice.minecraft.receive_crystals.description": "Receive 4 end crystals.",
   "choice.minecraft.regeneration.description": "Receive regeneration 1",
 
+  "choice.minecraft.empty_pos.description": "Nothing.",
+  "choice.minecraft.empty_neg.description": "Nothing.",
+
   "choice.minecraft.always_phantom.description": "Phantoms always spawn, regardless of if you slept or not.",
   "choice.minecraft.double_hunger_drain.description": "Hunger drains twice as fast.",
   "choice.minecraft.aggressive_enderman.description": "Endermen nearby instantly get aggressive at you.",

@@ -18,7 +18,7 @@ import net.minecraft.entity.*;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.text.*;
 
 import java.util.*;
 
@@ -32,6 +32,44 @@ public class WackyCmdManager {
 
 
 
+
+
+        root.then(CommandManager.literal("wildcard")
+                .then(CommandManager.literal("swap")
+                        .then(CommandManager.literal("time")
+
+                                .executes(context -> {
+                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                    if (!(wildcardObj instanceof SwapWildcard swapWildcard)) {
+                                        context.getSource().sendError(Text.literal("Swap wildcard is not active."));
+                                        return 0;
+                                    }
+
+                                    int swapTimer = swapWildcard.getSwapTimer();
+                                    context.getSource().sendMessage(Text.literal("Time until next swap: " + swapTimer));
+                                    return 1;
+                                })
+
+                                .then(CommandManager.literal("set")
+                                        .then(CommandManager.argument("time", IntegerArgumentType.integer())
+                                        .executes(context -> {
+                                            Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                            if (!(wildcardObj instanceof SwapWildcard swapWildcard)) {
+                                                context.getSource().sendError(Text.literal("Swap wildcard is not active."));
+                                                return 0;
+                                            }
+
+                                            int time = IntegerArgumentType.getInteger(context, "time");
+                                            swapWildcard.setSwapTimer(time);
+
+                                            int swapTimer = swapWildcard.getSwapTimer();
+                                            context.getSource().sendMessage(Text.literal("Time until next swap is now: " + swapTimer));
+                                            return 1;
+                                        })))
+
+
+
+                        )));
 
 
         LiteralArgumentBuilder<ServerCommandSource> choiceCommand = CommandManager.literal("choice")
@@ -175,6 +213,71 @@ public class WackyCmdManager {
                                     return 1;
                                 })))
         );
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("soulbound")
+                        .then(CommandManager.literal("set")
+                                .then(CommandManager.argument("player1", EntityArgumentType.player())
+                                        .then(CommandManager.argument("player2", EntityArgumentType.player())
+                                                .executes(ctx -> {
+                                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                                    if (!(wildcardObj instanceof SoulboundWildcard soulbound)) {
+                                                        ctx.getSource().sendError(Text.literal("Soulbound wildcard is not active."));
+                                                        return 0;
+                                                    }
+
+                                                    ServerPlayerEntity p1 = EntityArgumentType.getPlayer(ctx, "player1");
+                                                    ServerPlayerEntity p2 = EntityArgumentType.getPlayer(ctx, "player2");
+
+                                                    soulbound.setSoulmates(p1, p2);
+
+                                                    ctx.getSource().sendFeedback(() ->
+                                                            Text.literal("Set soulmates: ")
+                                                                    .append(p1.getName())
+                                                                    .append(" ↔ ")
+                                                                    .append(p2.getName()), true);
+                                                    return 1;
+                                                })))))
+        );
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("soulbound")
+                        .then(CommandManager.literal("get")
+                                .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .executes(ctx -> {
+                                            Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                            if (!(wildcardObj instanceof SoulboundWildcard soulbound)) {
+                                                ctx.getSource().sendError(Text.literal("Soulbound wildcard is not active."));
+                                                return 0;
+                                            }
+
+                                            ServerPlayerEntity player =
+                                                    EntityArgumentType.getPlayer(ctx, "player");
+
+                                            List<ServerPlayerEntity> mates =
+                                                    soulbound.getSoulmates(player);
+
+                                            if (mates.isEmpty()) {
+                                                ctx.getSource().sendFeedback(() ->
+                                                        Text.literal(player.getName().getString()
+                                                                + " has no soulmates."), false);
+                                                return 1;
+                                            }
+
+                                            MutableText msg = Text.literal(
+                                                    player.getName().getString() + "'s soulmates: ");
+
+                                            for (int i = 0; i < mates.size(); i++) {
+                                                if (i > 0) msg.append(", ");
+                                                msg.append(mates.get(i).getName());
+                                            }
+
+                                            ctx.getSource().sendFeedback(() -> msg, false);
+                                            return 1;
+                                        })))));
+
 
         root.then(CommandManager.literal("wildcard")
                 .requires(source -> source.hasPermissionLevel(2))

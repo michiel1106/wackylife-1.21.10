@@ -16,7 +16,7 @@ import java.util.*;
 
 public class SoulboundWildcard extends Wildcard {
 
-    private final Map<UUID, UUID> soulmates = new HashMap<>();
+    private final Map<UUID, Set<UUID>> soulmates = new HashMap<>();
 
     // Prevent infinite damage/heal loops
     private final Set<UUID> syncLock = new HashSet<>();
@@ -46,12 +46,12 @@ public class SoulboundWildcard extends Wildcard {
 
     @Override
     public void onPlayerJoin(ServerPlayerEntity player) {
-        // Optional: re-sync health on join
-        ServerPlayerEntity mate = getSoulmate(player);
-        if (mate != null) {
-            syncHealth(player, mate);
+        List<ServerPlayerEntity> mates = getSoulmates(player);
+        if (!mates.isEmpty()) {
+            syncHealth(player, mates.get(0));
         }
     }
+
 
     @Override
     public void onPlayerLeave(ServerPlayerEntity player) {
@@ -61,28 +61,76 @@ public class SoulboundWildcard extends Wildcard {
     /* ---------------- Soulmate Logic ---------------- */
 
     private void assignSoulmates(MinecraftServer server) {
-        List<ServerPlayerEntity> list = new ArrayList<>(server.getPlayerManager().getPlayerList());
-        List<ServerPlayerEntity> players = new ArrayList<>(list.stream().filter((player -> !ScoreboardManager.INSTANCE.isDead(player))).toList());
-
+        List<ServerPlayerEntity> players =
+                new ArrayList<>(server.getPlayerManager().getPlayerList());
 
         Collections.shuffle(players);
+        soulmates.clear();
 
-        for (int i = 0; i + 1 < players.size(); i += 2) {
+        int i = 0;
+
+        // Normal pairs
+        for (; i + 1 < players.size(); i += 2) {
             ServerPlayerEntity a = players.get(i);
             ServerPlayerEntity b = players.get(i + 1);
 
-            soulmates.put(a.getUuid(), b.getUuid());
-            soulmates.put(b.getUuid(), a.getUuid());
+            Set<UUID> group = new HashSet<>();
+            group.add(a.getUuid());
+            group.add(b.getUuid());
+
+            soulmates.put(a.getUuid(), new HashSet<>(group));
+            soulmates.put(b.getUuid(), new HashSet<>(group));
 
             syncHealth(a, b);
         }
+
+        // Odd one out → attach to random existing pair
+        if (players.size() % 2 == 1 && players.size() >= 3) {
+            ServerPlayerEntity leftover = players.get(players.size() - 1);
+
+            // Pick any existing group
+            UUID randomKey = soulmates.keySet().iterator().next();
+            Set<UUID> group = soulmates.get(randomKey);
+
+            group.add(leftover.getUuid());
+
+            for (UUID id : group) {
+                soulmates.put(id, new HashSet<>(group));
+            }
+
+            ServerPlayerEntity any =
+                    server.getPlayerManager().getPlayer(group.iterator().next());
+
+            if (any != null) {
+                syncHealth(leftover, any);
+            }
+        }
     }
 
-    private ServerPlayerEntity getSoulmate(ServerPlayerEntity player) {
-        UUID mateId = soulmates.get(player.getUuid());
-        if (mateId == null) return null;
-        return player.getEntityWorld().getServer().getPlayerManager().getPlayer(mateId);
+
+    public void setSoulmates(ServerPlayerEntity a, ServerPlayerEntity b) {
+        Set<UUID> group = new HashSet<>();
+        group.add(a.getUuid());
+        group.add(b.getUuid());
+
+        soulmates.put(a.getUuid(), new HashSet<>(group));
+        soulmates.put(b.getUuid(), new HashSet<>(group));
+
+        syncHealth(a, b);
     }
+
+
+    public List<ServerPlayerEntity> getSoulmates(ServerPlayerEntity player) {
+        Set<UUID> ids = soulmates.get(player.getUuid());
+        if (ids == null) return List.of();
+
+        return ids.stream()
+                .filter(id -> !id.equals(player.getUuid()))
+                .map(id -> player.getEntityWorld().getServer().getPlayerManager().getPlayer(id))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
 
     /* ---------------- Damage Sync ---------------- */
 
@@ -90,16 +138,18 @@ public class SoulboundWildcard extends Wildcard {
         if (amount <= 0) return;
         if (syncLock.contains(player.getUuid())) return;
 
-        ServerPlayerEntity mate = getSoulmate(player);
-        if (mate == null || !mate.isAlive()) return;
+        for (ServerPlayerEntity mate : getSoulmates(player)) {
+            if (!mate.isAlive()) continue;
 
-        try {
-            syncLock.add(mate.getUuid());
-            mate.damage(player.getEntityWorld().toServerWorld(), source, amount);
-        } finally {
-            syncLock.remove(mate.getUuid());
+            try {
+                syncLock.add(mate.getUuid());
+                mate.damage(player.getEntityWorld(), player.getDamageSources().magic(), amount);
+            } finally {
+                syncLock.remove(mate.getUuid());
+            }
         }
     }
+
 
     /* ---------------- Healing Sync ---------------- */
 
@@ -107,22 +157,24 @@ public class SoulboundWildcard extends Wildcard {
         if (amount <= 0) return;
         if (syncLock.contains(player.getUuid())) return;
 
-        ServerPlayerEntity mate = getSoulmate(player);
-        if (mate == null || !mate.isAlive()) return;
+        for (ServerPlayerEntity mate : getSoulmates(player)) {
+            if (!mate.isAlive()) continue;
 
-        try {
-            syncLock.add(mate.getUuid());
+            try {
+                syncLock.add(mate.getUuid());
 
-            float newHealth = Math.min(
-                    mate.getHealth() + amount,
-                    mate.getMaxHealth()
-            );
-            mate.setHealth(newHealth);
+                float newHealth = Math.min(
+                        mate.getHealth() + amount,
+                        mate.getMaxHealth()
+                );
+                mate.setHealth(newHealth);
 
-        } finally {
-            syncLock.remove(mate.getUuid());
+            } finally {
+                syncLock.remove(mate.getUuid());
+            }
         }
     }
+
 
     @Override
     public void tick(MinecraftServer server) {

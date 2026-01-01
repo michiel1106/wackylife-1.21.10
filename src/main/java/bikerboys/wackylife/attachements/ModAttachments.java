@@ -17,7 +17,7 @@ public class ModAttachments {
                     .initializer(() -> ChoiceAttachment.DEFAULT) // This handles "creates a new one"
                     .persistent(ChoiceAttachment.CODEC) // This handles "save stuff"
                     .copyOnDeath()
-                    .syncWith(ChoiceAttachment.PACKET_CODEC, AttachmentSyncPredicate.all())
+                    .syncWith(ChoiceAttachment.PACKET_CODEC, SyncPredicate.allIfNotDead())
     );
 
     /**
@@ -38,7 +38,6 @@ public class ModAttachments {
      * @param newNegativeChoice The new negative choice definition.
      */
     public static void setChoice(PlayerEntity player, Choice newPositiveChoice, Choice newNegativeChoice) {
-        // This logic should only run on the server
         if (player.getEntityWorld().isClient()) {
             return;
         }
@@ -160,8 +159,11 @@ public class ModAttachments {
      * Call this from your mod's main initializer to ensure the
      * static CHOICE_ATTACHMENT field is initialized and registered.
      */
+    static {
+        WackyLife.LOGGER.info("ModAttachments class loaded, CHOICE_ATTACHMENT initialized");
+    }
+
     public static void register() {
-        // This method can be empty. Its purpose is to be called,
-        // which loads the class and initializes the static final attachment type.
+        WackyLife.LOGGER.info("register() called, CHOICE_ATTACHMENT = {}", CHOICE_ATTACHMENT);
     }
 }
