@@ -34,7 +34,7 @@ public abstract class PlayerListRedirectMixin extends PlayerEntity {
 
             var map = WackyLifeClient.playerNameMap;
             var realName = this.getGameProfile().name();
-            var mappedName = map.get(realName);
+            var mappedName = map.get(realName).getLeft();
             if (mappedName == null) return;
 
 

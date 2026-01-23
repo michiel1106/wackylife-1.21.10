@@ -8,6 +8,7 @@ import net.minecraft.network.message.*;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.server.network.*;
 import net.minecraft.text.*;
+import net.minecraft.util.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 
@@ -73,22 +74,41 @@ public class ServerPlayNetworkHandlerMixin {
     }
 
 
-    private Text replaceNamesInText(Text text, Map<String, String> nameMap) {
+    private Text replaceNamesInText(Text text, Map<String, Pair<String, Integer>> nameMap) {
         if (!(text instanceof MutableText mutable)) {
             return text;
         }
 
-        // Check if the entire text (including siblings) matches a name to replace
         String currentText = mutable.getString();
-        for (Map.Entry<String, String> entry : nameMap.entrySet()) {
+        for (Map.Entry<String, Pair<String, Integer>> entry : nameMap.entrySet()) {
             if (currentText.equals(entry.getKey())) {
-                MutableText replaced = Text.literal(entry.getValue());
-                replaced.setStyle(mutable.getStyle());
+                String replacement = entry.getValue().getLeft();
+                int right = entry.getValue().getRight();
+
+                Formatting color;
+                if (right >= 4) {
+                    color = Formatting.DARK_GREEN;
+                } else if (right == 3) {
+                    color = Formatting.GREEN;
+                } else if (right == 2) {
+                    color = Formatting.YELLOW;
+                } else if (right == 1) {
+                    color = Formatting.RED;
+                } else {
+                    color = null;
+                }
+
+                MutableText replaced = Text.literal(replacement);
+                if (color != null) {
+                    replaced.setStyle(mutable.getStyle().withFormatting(color));
+                } else {
+                    replaced.setStyle(mutable.getStyle());
+                }
+
                 return replaced;
             }
         }
 
-        // Process siblings
         MutableText result = mutable.copy();
         result.getSiblings().clear();
 
@@ -98,4 +118,5 @@ public class ServerPlayNetworkHandlerMixin {
 
         return result;
     }
+
 }

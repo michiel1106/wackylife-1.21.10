@@ -5,8 +5,12 @@ import bikerboys.wackylife.networking.*;
 import net.fabricmc.api.*;
 import net.minecraft.client.render.entity.*;
 import net.minecraft.text.*;
+import net.minecraft.util.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
+
+import java.awt.*;
+import java.text.*;
 
 @Mixin(PlayerEntityRenderer.class)
 public abstract class PlayerEntityRendererMixin {
@@ -21,15 +25,33 @@ public abstract class PlayerEntityRendererMixin {
 
         String originalName = text.getString();
 
-        String newName = WackyLifeClient.playerNameMap.getOrDefault(originalName, originalName);
+        Pair<String, Integer> newName = WackyLifeClient.playerNameMap.get(originalName);
 
+        if (newName == null) {
+            return text;
+        }
 
         Style style = text.getStyle();
 
         if (!WackyLifeClient.wackySkinsActive) {
             return text;
         }
-        return Text.literal(newName).setStyle(style);
+
+        Formatting color = Formatting.GRAY;
+
+        Integer right = newName.getRight();
+
+        if (right >= 4) {
+            color = Formatting.DARK_GREEN;
+        } else if (right == 3) {
+            color = Formatting.GREEN;
+        } else if (right == 2) {
+            color = Formatting.YELLOW;
+        } else if (right == 1) {
+            color = Formatting.RED;
+        }
+
+        return Text.literal(newName.getLeft()).setStyle(style.withColor(color));
     }
 
 
@@ -43,15 +65,33 @@ public abstract class PlayerEntityRendererMixin {
 
         String originalName = text.getString();
 
-        String newName = WackyLifeClient.playerNameMap.getOrDefault(originalName, originalName);
+        Pair<String, Integer> newName = WackyLifeClient.playerNameMap.get(originalName);
 
+        if (newName == null) {
+            return text;
+        }
 
         Style style = text.getStyle();
 
         if (!WackyLifeClient.wackySkinsActive) {
             return text;
         }
-        return Text.literal(newName).setStyle(style);
+        Formatting color = Formatting.GRAY;
+
+        Integer right = newName.getRight();
+
+        if (right >= 4) {
+            color = Formatting.DARK_GREEN;
+        } else if (right == 3) {
+            color = Formatting.GREEN;
+        } else if (right == 2) {
+            color = Formatting.YELLOW;
+        } else if (right == 1) {
+            color = Formatting.RED;
+        }
+
+
+        return Text.literal(newName.getLeft()).setStyle(style.withColor(color));
 
     }
 }

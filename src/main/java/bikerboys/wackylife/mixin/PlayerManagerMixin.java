@@ -8,6 +8,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.*;
 import net.minecraft.server.*;
 import net.minecraft.server.network.*;
 import net.minecraft.text.*;
+import net.minecraft.util.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 
@@ -32,7 +33,14 @@ public class PlayerManagerMixin {
         }
 
         String realName = player.getName().getString();
-        String fakeName = skins.playerNameMap.get(realName);
+
+
+        Pair<String, Integer> stringIntegerPair = skins.playerNameMap.get(realName);
+        String fakeName = null;
+        if (stringIntegerPair != null) {
+             fakeName = stringIntegerPair.getLeft();
+        }
+
 
         if (fakeName != null) {
             return Text.literal(fakeName);

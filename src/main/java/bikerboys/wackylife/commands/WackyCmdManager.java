@@ -20,6 +20,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.*;
 import net.minecraft.text.*;
+import net.minecraft.util.*;
 
 import java.util.*;
 
@@ -181,12 +182,12 @@ public class WackyCmdManager {
                                                     Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
 
                                                     if (wildcardObj instanceof WackySkins wackySkins) {
-                                                        String fakeName = wackySkins.playerNameMap.get(realName);
+                                                        Pair<String, Integer> fakeName = wackySkins.playerNameMap.get(realName);
 
                                                         if (fakeName != null) {
                                                             ctx.getSource().getPlayer().sendMessage(
                                                                     Text.literal("The player's fake identity is ")
-                                                                            .append(Text.literal(fakeName))
+                                                                            .append(Text.literal(fakeName.getLeft()))
                                                                             .append(Text.literal(", they are actually: "))
                                                                             .append(Text.literal(realName))
                                                             );

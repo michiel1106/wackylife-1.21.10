@@ -34,7 +34,7 @@ import java.util.*;
 
 public class WackyLifeClient implements ClientModInitializer, IClientHelper {
 	public static List<String> playerNameList = new ArrayList<>();
-	public static Map<String, String> playerNameMap = new HashMap<>();
+	public static Map<String, Pair<String, Integer>> playerNameMap = new HashMap<>();
 	private static final ClientTicker CLIENT_TICKER;
 
 

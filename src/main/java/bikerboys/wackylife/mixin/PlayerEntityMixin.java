@@ -8,6 +8,7 @@ import net.minecraft.entity.*;
 import net.minecraft.entity.damage.*;
 import net.minecraft.server.network.*;
 import net.minecraft.text.*;
+import net.minecraft.util.*;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.*;
 
@@ -27,21 +28,17 @@ public class PlayerEntityMixin {
         Text originalMessage = original.call(instance);
         Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
 
-        System.out.println("[DEBUG] originalMessage: " + originalMessage.getString());
-        System.out.println("[DEBUG] siblings: " + originalMessage.getSiblings());
 
         if (!(wildcardObj instanceof WackySkins skins)) {
-            System.out.println("[DEBUG] wildcardObj not WackySkins");
             return originalMessage;
         }
 
         Text replaced = replaceNamesInText(originalMessage, skins.playerNameMap);
-        System.out.println("[DEBUG] replacedMessage: " + replaced.getString());
 
         return replaced;
     }
 
-    private Text replaceNamesInText(Text text, Map<String, String> nameMap) {
+    private Text replaceNamesInText(Text text, Map<String, Pair<String, Integer>> nameMap) {
         if (!(text instanceof MutableText mutable)) {
             return text;
         }
@@ -59,14 +56,16 @@ public class PlayerEntityMixin {
                     replacedArgs[i] = replaceNamesInText(t, nameMap);
                 } else if (arg instanceof String s) {
                     // Check if this string should be replaced
-                    replacedArgs[i] = nameMap.getOrDefault(s, s);
+                    Pair<String, Integer> stringIntegerPair = nameMap.get(s);
+                    if (stringIntegerPair != null) {
+                        replacedArgs[i] = stringIntegerPair.getLeft();
+                    } else {
+                        replacedArgs[i] = s;
+                    }
                 } else {
                     replacedArgs[i] = arg;
                 }
             }
-
-            System.out.println("[DEBUG] Original args: " + java.util.Arrays.toString(args));
-            System.out.println("[DEBUG] Replaced args: " + java.util.Arrays.toString(replacedArgs));
 
             // Create new translatable with replaced arguments
             MutableText result = Text.translatable(translatable.getKey(), replacedArgs);
@@ -82,10 +81,9 @@ public class PlayerEntityMixin {
 
         // Check if the entire text (including siblings) matches a name to replace
         String currentText = mutable.getString();
-        for (Map.Entry<String, String> entry : nameMap.entrySet()) {
+        for (Map.Entry<String, Pair<String, Integer>> entry : nameMap.entrySet()) {
             if (currentText.equals(entry.getKey())) {
-                System.out.println("[DEBUG] Replacing name: " + entry.getKey() + " -> " + entry.getValue());
-                MutableText replaced = Text.literal(entry.getValue());
+                MutableText replaced = Text.literal(entry.getValue().getLeft());
                 replaced.setStyle(mutable.getStyle());
                 // Copy over interaction properties if they exist
                 return replaced;
