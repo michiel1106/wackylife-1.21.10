@@ -19,7 +19,7 @@ public class AggressiveEnderman extends Choice {
     @Override
     public void tick(World world, PlayerEntity player, NbtCompound data) {
         Box box = new Box(player.getBlockPos());
-        box.expand(5);
+        box.expand(7);
         List<EndermanEntity> entitiesByType = world.getEntitiesByType(EntityType.ENDERMAN, box, (endermanEntity -> true));
         for (EndermanEntity endermanEntity : entitiesByType) {
             endermanEntity.setAngryAt(player.getUuid());

@@ -19,12 +19,12 @@ public class RandomSprint extends Choice {
 
     @Override
     public void tick(World world, PlayerEntity player, NbtCompound data) {
-        int timer = data.getInt("timer", random.nextInt(600, 1200));
+        int timer = data.getInt("timer", random.nextInt(100, 250));
         timer -= 1;
         data.putInt("timer", timer);
 
         if (timer <= 0) {
-            data.putInt("timer", random.nextInt(600, 1200));
+            data.putInt("timer", random.nextInt(100, 250));
             if (player instanceof ServerPlayerEntity player1) {
                 ServerPlayNetworking.send(player1, new RandomSprintS2C(player.isSprinting()));
             }

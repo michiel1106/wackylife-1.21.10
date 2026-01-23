@@ -6,6 +6,7 @@ import bikerboys.wackylife.util.*;
 import dev.architectury.event.*;
 import dev.architectury.event.events.common.*;
 import net.minecraft.entity.*;
+import net.minecraft.entity.player.*;
 import net.minecraft.item.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -13,6 +14,8 @@ import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.text.*;
 
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.stream.*;
 
 public class SoulboundWildcard extends Wildcard {
 
@@ -24,6 +27,7 @@ public class SoulboundWildcard extends Wildcard {
     @Override
     public void onActivate(MinecraftServer server) {
         EntityEvent.LIVING_HURT.register(this::hurt);
+        PlayerUtils.applyToAll(server, player -> player.heal(100));
         CustomPlayerEvent.HEAL.register(this::onPlayerHeal);
         soulmates.clear();
         syncLock.clear();
@@ -61,10 +65,23 @@ public class SoulboundWildcard extends Wildcard {
     /* ---------------- Soulmate Logic ---------------- */
 
     private void assignSoulmates(MinecraftServer server) {
-        List<ServerPlayerEntity> players =
-                new ArrayList<>(server.getPlayerManager().getPlayerList());
+        // Collect only ALIVE players (lives > 0)
+        List<ServerPlayerEntity> players = server.getPlayerManager()
+                .getPlayerList()
+                .stream()
+                .filter(p -> ScoreboardManager.INSTANCE.getLives(p, server) > 0)
+                .collect(Collectors.toCollection(ArrayList::new));
 
-        Collections.shuffle(players);
+        // Sort by lives descending (high lives first), randomize ties
+        players.sort(
+                Comparator.comparingInt(
+                                (ServerPlayerEntity p) ->
+                                        ScoreboardManager.INSTANCE.getLives(p, server)
+                        )
+                        .reversed()
+                        .thenComparing(p -> ThreadLocalRandom.current().nextInt())
+        );
+
         soulmates.clear();
 
         int i = 0;
@@ -84,27 +101,68 @@ public class SoulboundWildcard extends Wildcard {
             syncHealth(a, b);
         }
 
-        // Odd one out → attach to random existing pair
+        // Odd one out → attach to closest-lives group
         if (players.size() % 2 == 1 && players.size() >= 3) {
             ServerPlayerEntity leftover = players.get(players.size() - 1);
+            int leftoverLives = ScoreboardManager.INSTANCE.getLives(leftover, server);
 
-            // Pick any existing group
-            UUID randomKey = soulmates.keySet().iterator().next();
-            Set<UUID> group = soulmates.get(randomKey);
+            UUID bestMatch = soulmates.keySet().stream()
+                    .min(Comparator.comparingInt(id -> {
+                        ServerPlayerEntity p = server.getPlayerManager().getPlayer(id);
+                        if (p == null) return Integer.MAX_VALUE;
 
-            group.add(leftover.getUuid());
+                        int lives = ScoreboardManager.INSTANCE.getLives(p, server);
+                        return Math.abs(lives - leftoverLives);
+                    }))
+                    .orElse(null);
 
-            for (UUID id : group) {
-                soulmates.put(id, new HashSet<>(group));
-            }
+            if (bestMatch != null) {
+                Set<UUID> group = soulmates.get(bestMatch);
+                group.add(leftover.getUuid());
 
-            ServerPlayerEntity any =
-                    server.getPlayerManager().getPlayer(group.iterator().next());
+                for (UUID id : group) {
+                    soulmates.put(id, new HashSet<>(group));
+                }
 
-            if (any != null) {
-                syncHealth(leftover, any);
+                ServerPlayerEntity any =
+                        server.getPlayerManager().getPlayer(group.iterator().next());
+
+                if (any != null) {
+                    syncHealth(leftover, any);
+                }
+
+                int avgLives = averageLivesCeil(group, server);
+
+                for (UUID id : group) {
+                    ServerPlayerEntity p = server.getPlayerManager().getPlayer(id);
+                    if (p == null) continue;
+
+                    ScoreboardManager.INSTANCE.setLives(p, server, avgLives);
+                }
             }
         }
+
+
+    }
+
+    private int averageLivesCeil(Collection<UUID> group, MinecraftServer server) {
+        int total = 0;
+        int count = 0;
+
+        for (UUID id : group) {
+            ServerPlayerEntity p = server.getPlayerManager().getPlayer(id);
+            if (p == null) continue;
+
+            int lives = ScoreboardManager.INSTANCE.getLives(p, server);
+            if (lives <= 0) continue; // safety: ignore dead/not playing
+
+            total += lives;
+            count++;
+        }
+
+        if (count == 0) return 0;
+
+        return (total + count - 1) / count; // ⭐ round up
     }
 
 

@@ -19,6 +19,10 @@ public class VoicechatMain implements VoicechatPlugin {
     private OpusDecoder decoder;
     private AudioConverter audioConverter;
 
+
+    private final Map<UUID, DeepVoiceEffect> playerEffects = new HashMap<>();
+
+
     @Override
     public String getPluginId() {
         return "wackylife";
@@ -29,7 +33,6 @@ public class VoicechatMain implements VoicechatPlugin {
         this.encoder = api.createEncoder();
         this.decoder = api.createDecoder();
         this.audioConverter = api.getAudioConverter();
-        DeepVoiceEffect.init(audioConverter);
     }
 
     @Override
@@ -42,6 +45,11 @@ public class VoicechatMain implements VoicechatPlugin {
         UUID uuid = event.getConnection().getPlayer().getUuid();
         if (!connectedPlayers.contains(uuid)) {
             connectedPlayers.add(uuid);
+
+            // create a new instance of DeepVoiceEffect for this player
+            DeepVoiceEffect effect = new DeepVoiceEffect();
+            effect.init(audioConverter);
+            playerEffects.put(uuid, effect);
         }
     }
 
@@ -51,7 +59,10 @@ public class VoicechatMain implements VoicechatPlugin {
 
     private void onAudioPacket(MicrophonePacketEvent event) {
 
-        if (WackyLife.wackyLife.getWildcardObj() != null && WackyLife.wackyLife.getWildcardObj() instanceof WackySkins wackySkins && wackySkins.afterFirstSwap) {
+        if (WackyLife.wackyLife.getWildcardObj() != null
+                && WackyLife.wackyLife.getWildcardObj() instanceof WackySkins wackySkins
+                && wackySkins.afterFirstSwap) {
+
             VoicechatConnection senderConnection = event.getSenderConnection();
             if (senderConnection == null) return;
 
@@ -59,11 +70,12 @@ public class VoicechatMain implements VoicechatPlugin {
             MicrophonePacket originalPacket = event.getPacket();
             byte[] opusData = originalPacket.getOpusEncodedData().clone();
 
-            byte[] processedOpus = processOpusAudio(opusData);
+            // get the player's DeepVoiceEffect instance
+            DeepVoiceEffect effect = playerEffects.get(senderUUID);
+            byte[] processedOpus = (effect != null) ? processOpusAudioWithEffect(opusData, effect) : opusData;
 
             VoicechatServerApi api = event.getVoicechat();
             for (UUID targetUUID : connectedPlayers) {
-
                 if (targetUUID.equals(senderUUID)) continue;
 
                 VoicechatConnection targetConnection = api.getConnectionOf(targetUUID);
@@ -88,13 +100,12 @@ public class VoicechatMain implements VoicechatPlugin {
 
 
 
-    private byte[] processOpusAudio(byte[] opusData) {
+    private byte[] processOpusAudioWithEffect(byte[] opusData, DeepVoiceEffect effect) {
         try {
             short[] pcmData = decoder.decode(opusData);
             if (pcmData == null) return opusData;
 
-
-            short[] processed = DeepVoiceEffect.applyEffect(pcmData);
+            short[] processed = effect.applyEffect(pcmData);
             return encoder.encode(processed);
         } catch (Exception e) {
             e.printStackTrace();

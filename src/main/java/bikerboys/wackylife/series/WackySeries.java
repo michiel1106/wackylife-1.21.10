@@ -60,15 +60,19 @@ public class WackySeries {
         if (world.getServer() == null) return;
 
         for (ServerPlayerEntity player : world.getServer().getPlayerManager().getPlayerList()) {
-            ScoreAccess scoreAccess = ScoreboardManager.INSTANCE.getScoreboard(player, world.getServer(), Constants.LivesScoreboard);
-            if (scoreAccess == null) {
-                ServerScoreboard scoreboard = world.getServer().getScoreboard();
-                ScoreboardObjective objective = scoreboard.getNullableObjective(Constants.LivesScoreboard);
-                if (objective != null) {
-                    ScoreAccess newScore = scoreboard.getOrCreateScore(player, objective);
-                    newScore.setScore(6);
-                    player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("6").formatted(Formatting.DARK_GREEN)));
-                }
+            start(world, player);
+        }
+    }
+
+    public void start(World world, ServerPlayerEntity player) {
+        ScoreAccess scoreAccess = ScoreboardManager.INSTANCE.getScoreboard(player, world.getServer(), Constants.LivesScoreboard);
+        if (scoreAccess == null) {
+            ServerScoreboard scoreboard = world.getServer().getScoreboard();
+            ScoreboardObjective objective = scoreboard.getNullableObjective(Constants.LivesScoreboard);
+            if (objective != null) {
+                ScoreAccess newScore = scoreboard.getOrCreateScore(player, objective);
+                newScore.setScore(6);
+                player.networkHandler.sendPacket(new TitleS2CPacket(Text.literal("6").formatted(Formatting.DARK_GREEN)));
             }
         }
     }

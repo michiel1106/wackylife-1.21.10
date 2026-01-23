@@ -83,6 +83,16 @@ public class ScoreboardManager {
         }
     }
 
+    public void setLives(PlayerEntity player, MinecraftServer server, int lives) {
+        if (server != null) {
+            ScoreAccess scoreBoard = getScoreboard(player, server, Constants.LivesScoreboard);
+            if (scoreBoard != null) {
+                scoreBoard.setScore(lives);
+            }
+        }
+
+    }
+
     private void createTeamsAndScoreboards(ServerScoreboard scoreboard) {
         extracted(scoreboard, Constants.KillsScoreboard);
         extracted(scoreboard, Constants.SessionTime);

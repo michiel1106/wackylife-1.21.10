@@ -18,6 +18,7 @@ import net.minecraft.entity.*;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.*;
 import net.minecraft.text.*;
 
 import java.util.*;
@@ -488,6 +489,17 @@ public class WackyCmdManager {
                     return 1;
                 })
         );
+
+        root.then(CommandManager.literal("start")
+                .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
+                .then(CommandManager.argument("player", EntityArgumentType.player())
+                        .executes(context -> {
+                            ServerPlayerEntity player = EntityArgumentType.getPlayer(context, "player");
+                            ServerWorld world = context.getSource().getWorld();
+                            WackyLife.wackyLife.start(world, player);
+
+                            return 1;
+                        })));
 
         // lives set <players> <lives> (requires op)
         root.then(CommandManager.literal("lives")

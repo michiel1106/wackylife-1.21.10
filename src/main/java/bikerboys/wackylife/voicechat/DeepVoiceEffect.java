@@ -6,13 +6,13 @@ import java.util.*;
 
 public class DeepVoiceEffect {
 
-    private static AudioConverter converter;
-    private static Sonic sonic;
-    private static short[] leftover = new short[0];
-    private static short[] outputBuffer = new short[0];
-    private static final int FRAME_SIZE = 960;
+    private AudioConverter converter;
+    private Sonic sonic;
+    private short[] leftover = new short[0];
+    private short[] outputBuffer = new short[0];
+    private final int FRAME_SIZE = 960;
 
-    public static void init(AudioConverter audioConverter) {
+    public void init(AudioConverter audioConverter) {
         converter = audioConverter;
         sonic = new Sonic(48000, 1);
         sonic.setPitch(0.7f);
@@ -20,7 +20,7 @@ public class DeepVoiceEffect {
         sonic.setSpeed(1f);
     }
 
-    public static short[] applyEffect(short[] input) {
+    public short[] applyEffect(short[] input) {
         if (sonic == null || input == null || input.length == 0) {
             return new short[FRAME_SIZE];
         }
@@ -78,7 +78,7 @@ public class DeepVoiceEffect {
         return result;
     }
 
-    public static short[] flushAndGetRemaining() {
+    public short[] flushAndGetRemaining() {
         if (sonic == null) return new short[0];
         sonic.flushStream();
         int available = sonic.samplesAvailable();

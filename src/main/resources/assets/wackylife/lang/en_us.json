@@ -65,7 +65,7 @@
   "choice.minecraft.pacifist.description": "You cannot hit anything.",
   "choice.minecraft.half_hunger.description": "Hunger drains half as fast.",
   "choice.minecraft.fleeing_items.description": "Items run away from you.",
-  "choice.minecraft.blindness.description": "You are receive the blindness effect.",
+  "choice.minecraft.blindness.description": "You receive the blindness effect.",
   "choice.minecraft.lose_2_hearts.description": "Lose 2 hearts of max health.",
   "choice.minecraft.hunger.description": "You constantly have the hunger effect",
   "choice.minecraft.slowness.description": "You constantly have the slowness effect."
