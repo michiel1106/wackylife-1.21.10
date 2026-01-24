@@ -8,20 +8,19 @@ import de.maxhenkel.voicechat.api.events.*;
 import de.maxhenkel.voicechat.api.opus.*;
 import de.maxhenkel.voicechat.api.packets.*;
 
-
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class VoicechatMain implements VoicechatPlugin {
 
-    private static List<UUID> connectedPlayers = new ArrayList<>();
+    private static final List<UUID> connectedPlayers = Collections.synchronizedList(new ArrayList<>());
 
     private OpusEncoder encoder;
     private OpusDecoder decoder;
     private AudioConverter audioConverter;
 
-
-    private final Map<UUID, DeepVoiceEffect> playerEffects = new HashMap<>();
-
+    // THREAD-SAFE: one effect per player
+    private final Map<UUID, DeepVoiceEffect> playerEffects = new ConcurrentHashMap<>();
 
     @Override
     public String getPluginId() {
@@ -39,17 +38,29 @@ public class VoicechatMain implements VoicechatPlugin {
     public void registerEvents(EventRegistration registration) {
         registration.registerEvent(MicrophonePacketEvent.class, this::onAudioPacket);
         registration.registerEvent(PlayerConnectedEvent.class, this::onPlayerConnected);
+        registration.registerEvent(PlayerDisconnectedEvent.class, this::onPlayerDisconnected);
     }
 
     private void onPlayerConnected(PlayerConnectedEvent event) {
         UUID uuid = event.getConnection().getPlayer().getUuid();
+
         if (!connectedPlayers.contains(uuid)) {
             connectedPlayers.add(uuid);
 
-            // create a new instance of DeepVoiceEffect for this player
             DeepVoiceEffect effect = new DeepVoiceEffect();
             effect.init(audioConverter);
             playerEffects.put(uuid, effect);
+        }
+    }
+
+    private void onPlayerDisconnected(PlayerDisconnectedEvent event) {
+        UUID uuid = event.getPlayerUuid();
+
+        connectedPlayers.remove(uuid);
+
+        DeepVoiceEffect effect = playerEffects.remove(uuid);
+        if (effect != null) {
+            effect.flushAndGetRemaining();
         }
     }
 
@@ -59,46 +70,49 @@ public class VoicechatMain implements VoicechatPlugin {
 
     private void onAudioPacket(MicrophonePacketEvent event) {
 
-        if (WackyLife.wackyLife.getWildcardObj() != null
-                && WackyLife.wackyLife.getWildcardObj() instanceof WackySkins wackySkins
-                && wackySkins.afterFirstSwap) {
+        if (!(WackyLife.wackyLife.getWildcardObj() instanceof WackySkins wackySkins)
+                || !wackySkins.afterFirstSwap) {
+            return;
+        }
 
-            VoicechatConnection senderConnection = event.getSenderConnection();
-            if (senderConnection == null) return;
+        VoicechatConnection senderConnection = event.getSenderConnection();
+        if (senderConnection == null) return;
 
-            UUID senderUUID = senderConnection.getPlayer().getUuid();
-            MicrophonePacket originalPacket = event.getPacket();
-            byte[] opusData = originalPacket.getOpusEncodedData().clone();
+        UUID senderUUID = senderConnection.getPlayer().getUuid();
+        DeepVoiceEffect effect = playerEffects.get(senderUUID);
+        if (effect == null) return;
 
-            // get the player's DeepVoiceEffect instance
-            DeepVoiceEffect effect = playerEffects.get(senderUUID);
-            byte[] processedOpus = (effect != null) ? processOpusAudioWithEffect(opusData, effect) : opusData;
+        MicrophonePacket originalPacket = event.getPacket();
+        byte[] opusData = originalPacket.getOpusEncodedData().clone();
 
-            VoicechatServerApi api = event.getVoicechat();
+        byte[] processedOpus = processOpusAudioWithEffect(opusData, effect);
+
+        VoicechatServerApi api = event.getVoicechat();
+
+        synchronized (connectedPlayers) {
             for (UUID targetUUID : connectedPlayers) {
                 if (targetUUID.equals(senderUUID)) continue;
 
                 VoicechatConnection targetConnection = api.getConnectionOf(targetUUID);
                 if (targetConnection == null) continue;
 
-                LocationalSoundPacket newPacket = originalPacket.locationalSoundPacketBuilder()
-                        .opusEncodedData(processedOpus)
-                        .position(api.createPosition(
-                                senderConnection.getPlayer().getPosition().getX(),
-                                senderConnection.getPlayer().getPosition().getY(),
-                                senderConnection.getPlayer().getPosition().getZ()
-                        ))
-                        .distance((float) api.getBroadcastRange())
-                        .build();
+                LocationalSoundPacket newPacket =
+                        originalPacket.locationalSoundPacketBuilder()
+                                .opusEncodedData(processedOpus)
+                                .position(api.createPosition(
+                                        senderConnection.getPlayer().getPosition().getX(),
+                                        senderConnection.getPlayer().getPosition().getY(),
+                                        senderConnection.getPlayer().getPosition().getZ()
+                                ))
+                                .distance((float) api.getBroadcastRange())
+                                .build();
 
                 api.sendLocationalSoundPacketTo(targetConnection, newPacket);
             }
-
-            originalPacket.setOpusEncodedData(processedOpus);
         }
+
+        originalPacket.setOpusEncodedData(processedOpus);
     }
-
-
 
     private byte[] processOpusAudioWithEffect(byte[] opusData, DeepVoiceEffect effect) {
         try {
@@ -112,5 +126,4 @@ public class VoicechatMain implements VoicechatPlugin {
             return opusData;
         }
     }
-
 }
