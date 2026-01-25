@@ -28,6 +28,10 @@ public abstract class GameRendererMixin {
         return null;
     }
 
+    @Shadow
+    @Final
+    private Camera camera;
+
     /**
      * @author
      * @reason
@@ -45,6 +49,15 @@ public abstract class GameRendererMixin {
         float x = WackyLifeClient.x;
         float y = WackyLifeClient.y;
         float z = WackyLifeClient.z;
+
+        switch (WackyLifeClient.currentlives) {
+            case 6 -> x = 0f;
+            case 5 -> x = 0.06f;
+            case 4 -> x = 0.12f;
+            case 3 -> x = 0.18f;
+            case 2 -> x = 0.24f;
+            case 1 -> x = 0.3f;
+        }
 
         if (MinecraftClient.getInstance().player != null && ModAttachments.getChoice(MinecraftClient.getInstance().player).negativeChoiceId().equalsIgnoreCase("offsetcrosshair")) {
             x = 0.6f;

@@ -23,5 +23,6 @@
     "defaultRequire": 1
   },
   "mixins": [
+    "EntityMixin"
   ]
 }

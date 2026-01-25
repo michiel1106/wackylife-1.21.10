@@ -115,6 +115,9 @@ public class LevelUtils {
 
     public static void teleport(Entity entity, ServerWorld level, double destX, double destY, double destZ, float yaw, float pitch) {
         entity.teleport(level, destX, destY, destZ, EnumSet.noneOf(PositionFlag.class), yaw, pitch, false);
+    }
 
+    public static ChunkPos chunkPosFromBlockPos(BlockPos pos) {
+        return new ChunkPos(ChunkSectionPos.getSectionCoord(pos.getX()), ChunkSectionPos.getSectionCoord(pos.getZ()));
     }
 }

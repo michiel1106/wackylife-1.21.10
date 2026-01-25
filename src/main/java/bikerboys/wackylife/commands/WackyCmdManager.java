@@ -35,6 +35,30 @@ public class WackyCmdManager {
 
 
 
+        root.then(CommandManager.literal("wildcard")
+                .then(CommandManager.literal("snails")
+                        .then(CommandManager.literal("spawn")
+                                .then(CommandManager.argument("players", EntityArgumentType.players())
+                                        .executes(ctx -> {
+                                            Collection<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "players");
+
+                                            Wildcard wildcard = WackyLife.wackyLife.getWildcardObj();
+
+                                            if (!(wildcard instanceof SnailsWildCard snailsWildCard)) {
+                                                ctx.getSource().sendError(Text.literal("Snails wildcard is not active."));
+                                                return 0;
+                                            }
+                                            int counter = 0;
+
+                                            for (ServerPlayerEntity player : players) {
+                                                SnailsWildCard.spawnSnailFor(player);
+                                                counter++;
+                                            }
+
+                                            ctx.getSource().sendMessage(Text.literal("Spawned snails for " + counter + " player(s)"));
+
+                                            return players.size();
+                                        })))));
 
         root.then(CommandManager.literal("wildcard")
                 .then(CommandManager.literal("swap")

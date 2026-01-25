@@ -1,5 +1,6 @@
 package bikerboys.wackylife.entity;
 
+import bikerboys.wackylife.entity.snail.*;
 import bikerboys.wackylife.entity.triviabot.TriviaBot;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.entity.EntityType;
@@ -13,17 +14,31 @@ public class ModEntities {
             TriviaBot.ID
     );
 
+    public static final RegistryKey<EntityType<?>> SNAIL_KEY = RegistryKey.of(
+            Registries.ENTITY_TYPE.getKey(),
+            Snail.ID
+    );
+
     public static final EntityType<TriviaBot> TRIVIA_BOT = Registry.register(
             Registries.ENTITY_TYPE,
             Identifier.of("wackylife", "trivia_bot"),
             EntityType.Builder.create(TriviaBot::new, SpawnGroup.CREATURE)
                     .maxTrackingRange(512)
                     .dimensions(0.65f, 1.8f) // Standard humanoid size
-                    .build(TRIVIA_KEY) // The key here is technically optional in recent versions but good practice
+                    .build(TRIVIA_KEY)
+    );
+
+    public static final EntityType<Snail> SNAIL = Registry.register(
+            Registries.ENTITY_TYPE,
+            Snail.ID,
+            EntityType.Builder.create(Snail::new, SpawnGroup.MONSTER)
+                    .dimensions(0.5f, 0.6f)
+                    .maxTrackingRange(512)
+                    .build(SNAIL_KEY)
     );
 
     public static void register() {
-        // You MUST register attributes here, or the game will crash when the entity spawns.
         FabricDefaultAttributeRegistry.register(TRIVIA_BOT, TriviaBot.createAttributes());
+        FabricDefaultAttributeRegistry.register(SNAIL, Snail.createAttributes());
     }
 }

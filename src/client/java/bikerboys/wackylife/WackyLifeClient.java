@@ -3,6 +3,7 @@ package bikerboys.wackylife;
 import bikerboys.wackylife.attachements.*;
 import bikerboys.wackylife.choices.*;
 import bikerboys.wackylife.entity.*;
+import bikerboys.wackylife.entity.snail.*;
 import bikerboys.wackylife.entity.triviabot.*;
 import bikerboys.wackylife.gui.*;
 import bikerboys.wackylife.gui.trivia.*;
@@ -36,7 +37,8 @@ public class WackyLifeClient implements ClientModInitializer, IClientHelper {
 	public static List<String> playerNameList = new ArrayList<>();
 	public static Map<String, Pair<String, Integer>> playerNameMap = new HashMap<>();
 	private static final ClientTicker CLIENT_TICKER;
-
+	public static int snailAir = 300;
+	public static long snailAirTimestamp = 0;
 
 	public static boolean wackySkinsActive = false;
 	public static int currentlives = -1;
@@ -67,6 +69,8 @@ public class WackyLifeClient implements ClientModInitializer, IClientHelper {
 		EntityModelLayerRegistry.registerModelLayer(TriviaBotModel.TRIVIA_BOT, TriviaBotModel::getTexturedModelData);
 		EntityRendererRegistry.register(ModEntities.TRIVIA_BOT, TriviaBotRenderer::new);
 
+		EntityModelLayerRegistry.registerModelLayer(SnailModel.SNAIL, SnailModel::getTexturedModelData);
+		EntityRendererRegistry.register(ModEntities.SNAIL, SnailRenderer::new);
 
 		ClientPlayNetworking.registerGlobalReceiver(S2COpenTriviaScreen.ID, ((triviaScreen, context) -> {
 			context.client().setScreen(new QuizScreen(triviaScreen.question(), triviaScreen.uuid()));
@@ -83,6 +87,12 @@ public class WackyLifeClient implements ClientModInitializer, IClientHelper {
 		ClientPlayNetworking.registerGlobalReceiver(AlivePlayerList.ID, ((alivePlayerList, context) -> {
 			WackyLifeClient.playerNameList = alivePlayerList.playerNames();
 		}));
+
+		ClientPlayNetworking.registerGlobalReceiver(SnailAirS2C.ID, (questionTimeLeftUpdateS2C, context) -> {
+			snailAir = questionTimeLeftUpdateS2C.integer();
+			snailAirTimestamp = System.currentTimeMillis();
+
+		});
 
 		ClientPlayNetworking.registerGlobalReceiver(WackySkinsActive.ID, ((wackySkinsActive1, context) -> {
 			wackySkinsActive = wackySkinsActive1.active();
@@ -142,7 +152,6 @@ public class WackyLifeClient implements ClientModInitializer, IClientHelper {
 
 			matrices.popMatrix();
 		}));
-
 
 		if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
 			extracted();
