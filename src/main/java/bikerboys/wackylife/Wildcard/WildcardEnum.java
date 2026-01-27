@@ -10,6 +10,7 @@ public enum WildcardEnum implements StringIdentifiable {
     SOULBOUND("soulbound"),
     SWAP("swap"),
     SNAILS("snails"),
+    ANXIETY("anxiety"),
     EMPTY("empty");
 
 
@@ -38,6 +39,9 @@ public enum WildcardEnum implements StringIdentifiable {
             }
             case "snails" -> {
                 return new SnailsWildCard();
+            }
+            case "anxiety" -> {
+                return new AnxietyWildcard();
             }
             case "empty" -> {
                 return new Empty();

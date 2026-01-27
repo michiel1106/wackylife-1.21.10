@@ -8,6 +8,7 @@ import net.minecraft.client.texture.*;
 import net.minecraft.client.util.*;
 import net.minecraft.entity.player.*;
 import net.minecraft.text.*;
+import net.minecraft.util.*;
 import net.minecraft.world.*;
 import org.jetbrains.annotations.*;
 import org.spongepowered.asm.mixin.*;
@@ -26,6 +27,7 @@ public abstract class PlayerListRedirectMixin extends PlayerEntity {
     }
 
 
+    /*
     @Inject(method = "getPlayerListEntry", at = @At("HEAD"), cancellable = true)
     private void redirectPlayerListEntry(CallbackInfoReturnable<PlayerListEntry> cir) {
         if (WackyLifeClient.wackySkinsActive) {
@@ -34,8 +36,9 @@ public abstract class PlayerListRedirectMixin extends PlayerEntity {
 
             var map = WackyLifeClient.playerNameMap;
             var realName = this.getGameProfile().name();
-            var mappedName = map.get(realName).getLeft();
-            if (mappedName == null) return;
+            Pair<String, Integer> stringIntegerPair = map.get(realName);
+            if (stringIntegerPair == null) return;
+            var mappedName = stringIntegerPair.getLeft();
 
 
             for (var entry : client.getNetworkHandler().getPlayerList()) {
@@ -46,4 +49,6 @@ public abstract class PlayerListRedirectMixin extends PlayerEntity {
             }
         }
     }
+
+     */
 }

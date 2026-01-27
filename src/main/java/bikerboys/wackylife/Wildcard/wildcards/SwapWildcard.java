@@ -32,6 +32,7 @@ public class SwapWildcard extends Wildcard {
     @Override
     public void tick(MinecraftServer server) {
         super.tick(server);
+        if (Constants.paused) return;
 
         swapTimer--;
 

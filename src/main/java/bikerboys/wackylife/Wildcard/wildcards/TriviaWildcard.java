@@ -22,6 +22,7 @@ import org.apache.logging.log4j.core.jmx.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.*;
 
 public class TriviaWildcard extends Wildcard {
 
@@ -55,14 +56,21 @@ public class TriviaWildcard extends Wildcard {
     @Override
     public void tick(MinecraftServer server) {
         // 1. Cleanup Dead Bots from Map (every 10 seconds)
+        if (Constants.paused) return;
         cleanupCounter++;
         if (cleanupCounter >= 200) {
             cleanupCounter = 0;
             cleanupDeadBots();
         }
 
+        List<ServerPlayerEntity> players = server.getPlayerManager()
+                .getPlayerList()
+                .stream()
+                .filter(p -> ScoreboardManager.INSTANCE.getLives(p, server) > 0)
+                .collect(Collectors.toCollection(ArrayList::new));
+
         // 2. Update per-player spawn timers
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        for (ServerPlayerEntity player : players) {
             UUID uuid = player.getUuid();
 
             // Initialize timers for new players
@@ -103,7 +111,13 @@ public class TriviaWildcard extends Wildcard {
     public void deactivate(MinecraftServer server) {
         killAllBots(server);
 
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+        List<ServerPlayerEntity> players = server.getPlayerManager()
+                .getPlayerList()
+                .stream()
+                .filter(p -> ScoreboardManager.INSTANCE.getLives(p, server) > 0)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        for (ServerPlayerEntity player : players) {
             resetPlayerOnBotSpawn(player);
         }
 

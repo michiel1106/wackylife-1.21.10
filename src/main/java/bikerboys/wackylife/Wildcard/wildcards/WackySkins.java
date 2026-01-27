@@ -11,6 +11,7 @@ import net.minecraft.util.*;
 
 
 import java.util.*;
+import java.util.stream.*;
 
 public class WackySkins extends Wildcard {
     // actualname, changedname,integer
@@ -20,6 +21,7 @@ public class WackySkins extends Wildcard {
 
     @Override
     public void tick(MinecraftServer server) {
+        if (Constants.paused) return;
         if (tickDelay > 0) {
             tickDelay--;
         }
@@ -110,39 +112,67 @@ public class WackySkins extends Wildcard {
 
     public void swapPlayerList(MinecraftServer server) {
         List<String> playerNames = new ArrayList<>();
-        server.getPlayerManager().getPlayerList().forEach(player -> playerNames.add(player.getName().getString()));
+        List<ServerPlayerEntity> players = server.getPlayerManager()
+                .getPlayerList()
+                .stream()
+                .filter(p -> ScoreboardManager.INSTANCE.getLives(p, server) > 0)
+                .collect(Collectors.toCollection(ArrayList::new));
 
-        // Create a list of the existing pairs
-        List<Pair<String, Integer>> shuffledPairs = new ArrayList<>();
+        players.forEach(player -> playerNames.add(player.getName().getString()));
+
+        Map<String, String> previousTargets = new HashMap<>();
+        if (afterFirstSwap) {
+            for (String pName : playerNames) {
+                if (playerNameMap.containsKey(pName)) {
+                    previousTargets.put(pName, playerNameMap.get(pName).getLeft());
+                }
+            }
+        }
+
+        List<Pair<String, Integer>> targetPairs = new ArrayList<>();
         for (String playerName : playerNames) {
             int lives = -1;
             ScoreAccess scoreboard = ScoreboardManager.INSTANCE.getScoreboard(playerName, server, Constants.LivesScoreboard);
             if (scoreboard != null) {
                 lives = scoreboard.getScore();
             }
-            shuffledPairs.add(new Pair<>(playerName, lives));
+            targetPairs.add(new Pair<>(playerName, lives));
         }
 
-        // Shuffle the pairs
-        Collections.shuffle(shuffledPairs);
+        int maxAttempts = 100;
 
-        // Clear the current map and reassign
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            Collections.shuffle(targetPairs);
+
+            boolean isValidShuffle = true;
+
+            for (int i = 0; i < playerNames.size(); i++) {
+                String currentPlayer = playerNames.get(i);
+                String assignedTarget = targetPairs.get(i).getLeft();
+
+                if (playerNames.size() > 1 && currentPlayer.equals(assignedTarget)) {
+                    isValidShuffle = false;
+                    break;
+                }
+
+                String previousTarget = previousTargets.get(currentPlayer);
+                if (previousTarget != null && previousTarget.equals(assignedTarget)) {
+                    if (playerNames.size() > 2) {
+                        isValidShuffle = false;
+                        break;
+                    }
+                }
+            }
+
+            if (isValidShuffle) {
+                break;
+            }
+        }
+
+        // 4. Apply the map
         playerNameMap.clear();
         for (int i = 0; i < playerNames.size(); i++) {
-            playerNameMap.put(playerNames.get(i), shuffledPairs.get(i));
-        }
-
-        // Avoid mapping a player to themselves if there’s more than one player
-        for (int i = 0; i < playerNames.size(); i++) {
-            String originalName = playerNames.get(i);
-            Pair<String, Integer> assigned = playerNameMap.get(originalName);
-
-            if (assigned.getLeft().equals(originalName) && playerNames.size() > 1) {
-                String nextName = playerNames.get((i + 1) % playerNames.size());
-                Pair<String, Integer> temp = assigned;
-                playerNameMap.put(originalName, playerNameMap.get(nextName));
-                playerNameMap.put(nextName, temp);
-            }
+            playerNameMap.put(playerNames.get(i), targetPairs.get(i));
         }
 
         afterFirstSwap = true;

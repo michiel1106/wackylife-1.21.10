@@ -36,6 +36,7 @@ public class WackyCmdManager {
 
 
         root.then(CommandManager.literal("wildcard")
+                .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
                 .then(CommandManager.literal("snails")
                         .then(CommandManager.literal("spawn")
                                 .then(CommandManager.argument("players", EntityArgumentType.players())
@@ -61,6 +62,7 @@ public class WackyCmdManager {
                                         })))));
 
         root.then(CommandManager.literal("wildcard")
+                .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
                 .then(CommandManager.literal("swap")
                         .then(CommandManager.literal("time")
 
@@ -99,7 +101,7 @@ public class WackyCmdManager {
 
 
         LiteralArgumentBuilder<ServerCommandSource> choiceCommand = CommandManager.literal("choice")
-                // Require permission level 2 (like /gamemode, /give)
+
                 .requires(source -> source.hasPermissionLevel(2));
 
         // --- /wackylife choice set <player> <positive_choice> <negative_choice> ---
@@ -138,6 +140,7 @@ public class WackyCmdManager {
         );
 
         root.then(CommandManager.literal("debug")
+                .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
                 .then(CommandManager.literal("setquestion")
                         .then(CommandManager.argument("entity", EntityArgumentType.entity())
                                 .then(CommandManager.argument("index", IntegerArgumentType.integer())

@@ -35,6 +35,7 @@ public class SoulboundWildcard extends Wildcard {
     }
 
     private EventResult hurt(LivingEntity livingEntity, DamageSource damageSource, float v) {
+        if (Constants.paused) return EventResult.pass();
         if (livingEntity instanceof ServerPlayerEntity player) {
             onPlayerDamage(player, damageSource, v);
         }
@@ -194,6 +195,7 @@ public class SoulboundWildcard extends Wildcard {
 
     public void onPlayerDamage(ServerPlayerEntity player, DamageSource source, float amount) {
         if (amount <= 0) return;
+        if (Constants.paused) return;
         if (syncLock.contains(player.getUuid())) return;
 
         for (ServerPlayerEntity mate : getSoulmates(player)) {
@@ -212,6 +214,8 @@ public class SoulboundWildcard extends Wildcard {
     /* ---------------- Healing Sync ---------------- */
 
     public void onPlayerHeal(ServerPlayerEntity player, float amount) {
+        if (Constants.paused) return;
+
         if (amount <= 0) return;
         if (syncLock.contains(player.getUuid())) return;
 

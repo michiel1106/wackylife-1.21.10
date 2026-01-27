@@ -3,6 +3,7 @@
   "package": "bikerboys.wackylife.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "AbstractClientPlayerEntityMixin",
     "AbstractSoundInstanceAccessor",
     "EntityBoundSoundInstanceAccessor",
     "GameRendererMixin",

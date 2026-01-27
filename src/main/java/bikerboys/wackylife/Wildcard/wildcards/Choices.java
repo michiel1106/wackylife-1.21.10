@@ -19,6 +19,7 @@ public class Choices extends Wildcard {
 
     @Override
     public void tick(MinecraftServer server) {
+        if (Constants.paused) return;
         if (!processQueue.isEmpty()) {
             processPlayers(server);
         }

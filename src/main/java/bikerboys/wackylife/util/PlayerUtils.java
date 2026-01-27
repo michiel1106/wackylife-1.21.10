@@ -1,7 +1,6 @@
 package bikerboys.wackylife.util;
 
 import bikerboys.wackylife.*;
-import static net.minecraft.command.argument.EntityArgumentType.getPlayer;
 import net.minecraft.component.*;
 import net.minecraft.entity.*;
 import net.minecraft.network.packet.s2c.play.*;
@@ -13,6 +12,7 @@ import net.minecraft.text.*;
 
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.*;
 
 public class PlayerUtils {
 
@@ -31,6 +31,17 @@ public class PlayerUtils {
         player.networkHandler.sendPacket(titlePacket);
         SubtitleS2CPacket subtitlePacket = new SubtitleS2CPacket(subtitle);
         player.networkHandler.sendPacket(subtitlePacket);
+    }
+
+    public static List<ServerPlayerEntity> getActivePlayers(MinecraftServer server) {
+        List<ServerPlayerEntity> players = server.getPlayerManager()
+                .getPlayerList()
+                .stream()
+                .filter(p -> ScoreboardManager.INSTANCE.getLives(p, server) > 0)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        return players;
+
     }
 
     public static void sendTitle(ServerPlayerEntity player, Text title, int fadeIn, int stay, int fadeOut) {
