@@ -15,8 +15,8 @@ import java.util.*;
 public class SwapWildcard extends Wildcard {
 
     // --- Configuration ---
-    public static final int MIN_SWAP_INTERVAL_TICKS = 4000;   // 200 seconds
-    public static final int MAX_SWAP_INTERVAL_TICKS = 8000;   // 400 seconds
+    public static final int MIN_SWAP_INTERVAL_TICKS = 8000;   // 400 seconds
+    public static final int MAX_SWAP_INTERVAL_TICKS = 16000;   // 800 seconds
     private static final Random rnd = new Random();
 
     // --- State ---

@@ -26,16 +26,7 @@ public abstract class AbstractClientPlayerEntityMixin extends PlayerEntity imple
 
         Pair<String, Integer> stringIntegerPair = WackyLifeClient.playerNameMap.get(name);
 
-        boolean isTheCardActive = false;
-
-        if (stringIntegerPair != null) {
-            String playerToBe = stringIntegerPair.getLeft();
-            if (!playerToBe.equalsIgnoreCase(name)) {
-                isTheCardActive = true;
-            }
-        }
-
-        if (isTheCardActive) {
+        if (WackyLifeClient.wackySkinsActive && stringIntegerPair != null) {
             PlayerSkinCache cache = MinecraftClient.getInstance().getPlayerSkinCache();
             ProfileComponent profile = ProfileComponent.ofDynamic(stringIntegerPair.getLeft());
 

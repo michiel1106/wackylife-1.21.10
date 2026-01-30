@@ -7,18 +7,24 @@ import bikerboys.wackylife.util.*;
 import bikerboys.wackylife.wyr.choice.*;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.fabricmc.loader.impl.discovery.*;
+import net.jpountz.util.*;
 import net.minecraft.entity.player.*;
+import net.minecraft.item.*;
 import net.minecraft.server.network.*;
+import net.minecraft.server.world.*;
 import net.minecraft.sound.*;
 import net.minecraft.text.*;
 import net.minecraft.util.*;
+import net.minecraft.util.math.*;
 
 import java.util.*;
 
 public class TriviaHandler extends AbstractTrivia{
     public TriviaHandler(TriviaBot bot) {
         super(bot);
+        initializeItemSpawner();
     }
+    public static ItemSpawner itemSpawner;
 
     public int snailTransformation = 0;
 
@@ -31,8 +37,6 @@ public class TriviaHandler extends AbstractTrivia{
         if (bot.ranOutOfTime()) {
             snailTransformation++;
         }
-
-
 
         if (bot.age % 2 == 0 && bot.submittedAnswer()) {
             bot.setAnalyzingTime(bot.getAnalyzingTime()-1);
@@ -130,7 +134,8 @@ public class TriviaHandler extends AbstractTrivia{
 
     private void blessPlayer() {
         ServerPlayerEntity boundPlayer = bot.serverData.getBoundPlayer();
-
+        Vec3d pos = bot.getEntityPos().add(0,1,0);
+        Vec3d vector = Vec3d.ZERO;
 
         if (boundPlayer != null) {
             ChoiceAttachment choice = ModAttachments.getChoice(boundPlayer);
@@ -138,7 +143,42 @@ public class TriviaHandler extends AbstractTrivia{
                 Choice positiveChoice = ChoiceRegistry.get(ChoiceRegistry.getRandomChoicePairs().getFirst().positiveChoice());
                 ModAttachments.setChoice(boundPlayer, positiveChoice, ChoiceRegistry.get("empty_neg"));
             }
+            ItemStack randomItem = itemSpawner.getRandomItem();
+            OtherUtils.spawnItemForPlayerWithVelocity((ServerWorld) bot.getEntityWorld(), pos, randomItem, bot.serverData.getBoundPlayer(), vector);
+
+
         }
+    }
+
+    public static void initializeItemSpawner() {
+        itemSpawner = new ItemSpawner();
+        itemSpawner.addItem(new ItemStack(Items.GOLDEN_APPLE, 2), 20);
+        itemSpawner.addItem(new ItemStack(Items.ENDER_PEARL, 2), 20);
+        itemSpawner.addItem(new ItemStack(Items.TRIDENT), 10);
+        itemSpawner.addItem(new ItemStack(Items.POWERED_RAIL, 16), 10);
+        itemSpawner.addItem(new ItemStack(Items.DIAMOND, 4), 20);
+        itemSpawner.addItem(new ItemStack(Items.CREEPER_SPAWN_EGG), 10);
+        itemSpawner.addItem(new ItemStack(Items.GOLDEN_CARROT, 8), 10);
+        itemSpawner.addItem(new ItemStack(Items.WIND_CHARGE, 16), 10);
+        itemSpawner.addItem(new ItemStack(Items.SCULK_SHRIEKER, 2), 10);
+        itemSpawner.addItem(new ItemStack(Items.SCULK_SENSOR, 8), 10);
+        itemSpawner.addItem(new ItemStack(Items.TNT, 8), 20);
+        itemSpawner.addItem(new ItemStack(Items.COBWEB, 8), 10);
+        itemSpawner.addItem(new ItemStack(Items.OBSIDIAN, 8), 10);
+        itemSpawner.addItem(new ItemStack(Items.PUFFERFISH_BUCKET), 10);
+        itemSpawner.addItem(new ItemStack(Items.NETHERITE_CHESTPLATE), 10);
+        itemSpawner.addItem(new ItemStack(Items.NETHERITE_LEGGINGS), 10);
+        itemSpawner.addItem(new ItemStack(Items.NETHERITE_BOOTS), 10);
+        itemSpawner.addItem(new ItemStack(Items.ARROW, 64), 10);
+        itemSpawner.addItem(new ItemStack(Items.IRON_BLOCK, 2), 10);
+
+        ItemStack mace = new ItemStack(Items.MACE);
+        mace.setDamage(mace.getMaxDamage()-1);
+        itemSpawner.addItem(mace, 5);
+
+        ItemStack endCrystal = new ItemStack(Items.END_CRYSTAL);
+        itemSpawner.addItem(endCrystal, 10);
+
     }
 
     public void answeredIncorrect() {
