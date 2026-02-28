@@ -28,8 +28,8 @@ public class TriviaWildcard extends Wildcard {
 
     // --- Configuration ---
     public static final int BOTS_PER_PLAYER = 5;
-    public static final int MIN_SPAWN_INTERVAL_TICKS = 5000;  // 250 seconds
-    public static final int MAX_SPAWN_INTERVAL_TICKS = 8000;  // 400 seconds
+    public static final int MIN_SPAWN_INTERVAL_TICKS = 5000;  // 1200 seconds
+    public static final int MAX_SPAWN_INTERVAL_TICKS = 8000;  // 2000 seconds
     private static final Random rnd = new Random();
 
     // --- State ---

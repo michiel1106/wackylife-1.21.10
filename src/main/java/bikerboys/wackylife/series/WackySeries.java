@@ -307,6 +307,12 @@ public class WackySeries {
                 ScoreboardManager.INSTANCE.incrementLives(predator, server);
             }
         }
+
+        Wildcard wildcardObj = getWildcardObj();
+        if (wildcardObj != null) {
+            wildcardObj.onPlayerKill(predator, prey, server);
+        }
+
     }
 
 
