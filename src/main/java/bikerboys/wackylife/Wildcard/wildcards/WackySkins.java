@@ -93,7 +93,7 @@ public class WackySkins extends Wildcard {
     @Override
     public void onActivate(MinecraftServer server) {
         List<String> playerNames = new ArrayList<>();
-        server.getPlayerManager().getPlayerList().forEach(player -> playerNames.add(player.getName().getString()));
+        PlayerUtils.getActivePlayers(server).forEach(player -> playerNames.add(player.getName().getString()));
 
         for (String playerName : playerNames) {
             ScoreAccess scoreboard = ScoreboardManager.INSTANCE.getScoreboard(playerName, server, Constants.LivesScoreboard);

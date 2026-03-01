@@ -24,7 +24,9 @@ public class SnailsWildCard extends Wildcard {
     @Override
     public void onActivate(MinecraftServer server) {
         snails.clear();
-        List<ServerPlayerEntity> playerList = server.getPlayerManager().getPlayerList().stream().filter(player -> ScoreboardManager.INSTANCE.isDead(player)).toList();
+        List<ServerPlayerEntity> playerList = PlayerUtils.getActivePlayers(server);
+
+
 
         for (ServerPlayerEntity player : playerList) {
             if (!canHaveSnail(player)) continue;
