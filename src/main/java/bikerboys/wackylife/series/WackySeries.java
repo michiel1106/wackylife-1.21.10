@@ -129,6 +129,12 @@ public class WackySeries {
             wackyskinsactive = true;
         }
 
+        if (this.wildcard instanceof FinalWildcard finalWildcard) {
+            if (finalWildcard.phase == 2) {
+                wackyskinsactive = true;
+            }
+        }
+
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
             ServerPlayNetworking.send(player, new CurrentSessionTime(ScoreboardManager.INSTANCE.getTime(server)));
             ServerPlayNetworking.send(player, new WackySkinsActive(wackyskinsactive));
