@@ -15,7 +15,7 @@ import java.util.*;
 public class Choices extends Wildcard {
 
     public List<UUID> processQueue = new ArrayList<>();
-    public int tickDelay = 30000;
+    public int tickDelay = 25000;
 
     @Override
     public void tick(MinecraftServer server) {
@@ -28,7 +28,7 @@ public class Choices extends Wildcard {
         }
 
         if (tickDelay == 0) {
-            tickDelay = 30000;
+            tickDelay = 25000;
             execute(server);
         }
 

@@ -17,7 +17,7 @@ public class WackySkins extends Wildcard {
     // actualname, changedname,integer
     public Map<String, Pair<String, Integer>> playerNameMap = new HashMap<>();
     public boolean afterFirstSwap = false;
-    public int tickDelay = 24000;
+    public int tickDelay = 20000;
 
     @Override
     public void tick(MinecraftServer server) {
