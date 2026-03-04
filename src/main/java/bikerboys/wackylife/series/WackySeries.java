@@ -3,6 +3,8 @@ package bikerboys.wackylife.series;
 import bikerboys.wackylife.*;
 import bikerboys.wackylife.Wildcard.*;
 import bikerboys.wackylife.Wildcard.wildcards.*;
+import bikerboys.wackylife.entity.snail.*;
+import bikerboys.wackylife.entity.triviabot.*;
 import bikerboys.wackylife.manager.*;
 import bikerboys.wackylife.networking.*;
 import bikerboys.wackylife.util.*;
@@ -11,20 +13,28 @@ import dev.architectury.event.*;
 import dev.architectury.event.events.common.*;
 import net.fabricmc.fabric.api.entity.event.v1.*;
 import net.fabricmc.fabric.api.event.lifecycle.v1.*;
+import net.fabricmc.fabric.api.itemgroup.v1.*;
 import net.fabricmc.fabric.api.networking.v1.*;
 import net.minecraft.entity.*;
+import net.minecraft.entity.boss.*;
+import net.minecraft.entity.boss.dragon.*;
 import net.minecraft.entity.damage.*;
+import net.minecraft.entity.mob.*;
 import net.minecraft.entity.player.*;
 import net.minecraft.entity.vehicle.*;
+import net.minecraft.item.*;
 import net.minecraft.network.packet.s2c.play.*;
 import net.minecraft.scoreboard.*;
 import net.minecraft.server.*;
 import net.minecraft.server.network.*;
+import net.minecraft.server.world.*;
 import net.minecraft.sound.*;
 import net.minecraft.text.*;
 import net.minecraft.util.*;
 import net.minecraft.world.*;
+import org.spongepowered.asm.mixin.injection.callback.*;
 
+import java.awt.event.*;
 import java.util.*;
 
 public class WackySeries {
@@ -36,6 +46,7 @@ public class WackySeries {
         PlayerEvent.PLAYER_JOIN.register(this::playerJoin);
         ServerPlayerEvents.LEAVE.register(this::playerLeave);
         EntityEvent.LIVING_DEATH.register(this::onPlayerDeath);
+
     }
 
     private void playerLeave(ServerPlayerEntity player) {
@@ -172,7 +183,38 @@ public class WackySeries {
 
     }
 
+    public void onEntityDropItems(LivingEntity entity, DamageSource damageSource, CallbackInfo ci) {
+        if (!entity.getEntityWorld().isClient()) {
+            spawnEggChance(entity);
+        }
+    }
 
+
+    private void spawnEggChance(LivingEntity entity) {
+        double chance = 0.05;
+
+        if (entity instanceof EnderDragonEntity) return;
+        if (entity instanceof WitherEntity) return;
+        if (entity instanceof WardenEntity) return;
+        if (entity instanceof ElderGuardianEntity) return;
+        if (entity instanceof Snail) return;
+        if (entity instanceof TriviaBot) return;
+
+
+        EntityType<?> entityType = entity.getType();
+
+        SpawnEggItem spawnEgg = SpawnEggItem.forEntity(entityType);
+        if (spawnEgg == null) return;
+        ItemStack spawnEggItem = spawnEgg.getDefaultStack();
+
+
+        if (spawnEggItem == null) return;
+        if (spawnEggItem.isEmpty()) return;
+
+        if (Math.random() <= chance) {
+            entity.dropStack((ServerWorld) entity.getEntityWorld(), spawnEggItem);
+        }
+    }
 
     private void updateData(MinecraftServer server) {
         List<ServerPlayerEntity> players = server.getPlayerManager().getPlayerList();

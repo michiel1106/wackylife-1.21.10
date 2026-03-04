@@ -30,7 +30,7 @@ public class ChoiceListWidget implements Drawable, Widget {
     private int y;
     private final int height;
     private final TextRenderer textRenderer;
-    private final List<Entry> entries;
+    private List<Entry> entries;
     private int prevMouseIndex = -1;
     private int prevTick;
 
@@ -40,8 +40,11 @@ public class ChoiceListWidget implements Drawable, Widget {
         this.height = height;
         this.textRenderer = textRenderer;
         this.entries = choiceInstances.stream().map((choiceInstance) -> {
-            return new Entry(MultilineText.create(this.textRenderer, Text.translatable(choiceInstance.getTranslationKey()), 105), 1, choiceInstance.isPositive(), this.textRenderer);
+            return new Entry(MultilineText.create(this.textRenderer, Text.translatable(choiceInstance.getTranslationKey()), 105), 1, choiceInstance.isPositive(), this.textRenderer, choiceInstance.getId());
         }).toList();
+
+       // this.entries = this.entries.stream().filter((entry -> entry.choiceid.equalsIgnoreCase("empty_pos") || entry.choiceid.equalsIgnoreCase("empty_neg"))).toList();
+
     }
 
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
@@ -62,6 +65,9 @@ public class ChoiceListWidget implements Drawable, Widget {
 
             for (int i = 0; i < size; ++i) {
                 Entry entry = (Entry) this.entries.get(i);
+
+                if (entry.choiceid.equalsIgnoreCase("empty_pos") || entry.choiceid.equalsIgnoreCase("empty_neg")) continue;
+
                 if (newTick && size > 1) {
                     entry.update(time, mouseIndex == i && hovered ? ChoiceListWidget.EntryState.HOVER : ChoiceListWidget.EntryState.NONE);
                 }
@@ -125,8 +131,9 @@ public class ChoiceListWidget implements Drawable, Widget {
         public EntryState state;
         private int tick;
         private final TextRenderer textRenderer;
+        public String choiceid;
 
-        public Entry(MultilineText text, int count, boolean positive, TextRenderer textRenderer) {
+        public Entry(MultilineText text, int count, boolean positive, TextRenderer textRenderer, String choiceid) {
             this.state = ChoiceListWidget.EntryState.NONE;
             this.text = text;
             this.positive = positive;
@@ -134,6 +141,7 @@ public class ChoiceListWidget implements Drawable, Widget {
                 return style.withColor(16762959);
             }) : null;
             this.textRenderer = textRenderer;
+            this.choiceid = choiceid;
         }
 
         public void update(float time, EntryState state) {
