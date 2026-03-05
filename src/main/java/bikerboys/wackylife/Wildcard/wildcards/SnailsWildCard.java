@@ -191,7 +191,7 @@ public class SnailsWildCard extends Wildcard {
         defaults.put("Cryoclipse_", "CryoShell");
         defaults.put("championhestu", "SnailChampion");
         defaults.put("P1NKSY", "Snailsy");
-        defaults.put("Random", "");
+        defaults.put("CHANGETHISTORANDOMSUSERNAME", "Randosnail");
         defaults.put("Pitterr_", "Pittastropod");
         defaults.put("Bikerboys", "Slimeyboys");
         defaults.put("astroey", "Slimey");
