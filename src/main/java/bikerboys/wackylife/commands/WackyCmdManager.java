@@ -61,6 +61,24 @@ public class WackyCmdManager {
                                             return players.size();
                                         })))));
 
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
+                .then(CommandManager.literal("snails")
+                        .then(CommandManager.literal("setname")
+                                .then(CommandManager.argument("player", EntityArgumentType.player())
+                                        .then(CommandManager.argument("snailname", StringArgumentType.string())
+                                        .executes(ctx -> {
+
+                                            String string = StringArgumentType.getString(ctx, "snailname");
+                                            ServerPlayerEntity player = EntityArgumentType.getPlayer(ctx, "player");
+
+                                            SnailsWildCard.setSnailName(player, string);
+
+
+                                            return 1;
+                                        }))))));
+
         root.then(CommandManager.literal("wildcard")
                 .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
                 .then(CommandManager.literal("swap")

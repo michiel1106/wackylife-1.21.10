@@ -2,7 +2,7 @@
   "gui.confirm" : "Confirm",
 
 
-
+  "death.attack.snail.player" : "%s got decimated by %s",
 
 
   "choice.minecraft.double_mob_drops.description": "Mobs drop twice as many items.",

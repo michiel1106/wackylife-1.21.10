@@ -45,6 +45,8 @@ public class WackyLife implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(QuestionResourceLoader.ID, new QuestionResourceLoader());
+		ResourceLoader.get(ResourceType.SERVER_DATA).registerReloader(SnailsWildCard.SnailNameLoader.ID, new SnailsWildCard.SnailNameLoader());
+
 		ModAttachments.register();
 		QuestionManager.registerQuestions();
 

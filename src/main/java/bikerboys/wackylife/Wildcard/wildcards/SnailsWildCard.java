@@ -5,19 +5,32 @@ import bikerboys.wackylife.entity.*;
 import bikerboys.wackylife.entity.snail.*;
 import bikerboys.wackylife.entity.snail.server.*;
 import bikerboys.wackylife.util.*;
+import com.google.common.reflect.*;
+import com.google.gson.*;
+import net.fabricmc.fabric.api.resource.*;
+import net.fabricmc.loader.api.*;
 import net.minecraft.entity.*;
 import net.minecraft.entity.player.*;
+import net.minecraft.resource.*;
 import net.minecraft.server.*;
 import net.minecraft.server.network.*;
 import net.minecraft.server.world.*;
+import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 
+import java.io.*;
+import java.lang.reflect.*;
+import java.nio.file.*;
+import java.nio.file.attribute.*;
 import java.util.*;
 
 public class SnailsWildCard extends Wildcard {
 
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static Path snailFile;
+
     public static Map<UUID, Snail> snails = new HashMap<>();
-    public static Map<UUID, String> snailNames = new HashMap<>();
+    public static Map<String, String> snailNames = new HashMap<>();
     long ticks = 0;
 
 
@@ -49,7 +62,7 @@ public class SnailsWildCard extends Wildcard {
     public void tick(MinecraftServer server) {
         ticks++;
         if (ticks % 100 == 0) {
-            List<ServerPlayerEntity> playerList = server.getPlayerManager().getPlayerList().stream().filter(player -> !(ScoreboardManager.INSTANCE.isDead(player))).toList();
+            List<ServerPlayerEntity> playerList = PlayerUtils.getActivePlayers(server);
 
             for (ServerPlayerEntity player : playerList) {
                 if (!canHaveSnail(player)) continue;
@@ -116,21 +129,38 @@ public class SnailsWildCard extends Wildcard {
         }
     }
 
+    private static void saveSnailNames() {
+        if (snailFile == null) return;
+
+        try {
+            String json = GSON.toJson(snailNames);
+            Files.writeString(snailFile, json, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static void setSnailName(ServerPlayerEntity player, String name) {
-        snailNames.put(player.getUuid(), name);
+        snailNames.put(player.getGameProfile().name().toLowerCase(), name);
+        saveSnailNames();
         reloadSnailNames();
     }
 
     public static void resetSnailName(ServerPlayerEntity player) {
-        snailNames.remove(player.getUuid());
+        snailNames.remove(player.getGameProfile().name().toLowerCase());
+        saveSnailNames();
         reloadSnailNames();
     }
 
     public static String getSnailName(PlayerEntity player) {
         if (player == null) return "Snail";
-        if (snailNames.containsKey(player.getUuid())) {
-            return snailNames.get(player.getUuid());
+
+        String username = player.getGameProfile().name().toLowerCase();
+
+        if (snailNames.containsKey(username)) {
+            return snailNames.get(username);
         }
+
         return TextUtils.formatString("{}'s Snail", player);
     }
 
@@ -139,5 +169,87 @@ public class SnailsWildCard extends Wildcard {
     @Override
     public String toString() {
         return "Snails";
+    }
+
+
+
+    private static Map<String, String> createDefaultSnailNames() {
+        Map<String, String> defaults = new HashMap<>();
+
+        defaults.put("bikerboys", "Bikersnail");
+
+
+        defaults.put("spokecat", "shellcat");
+        defaults.put("Flitterboom", "Shellboom");
+        defaults.put("hayberri", "hayShelli");
+        defaults.put("TheZivZumbo", "TheSnailZumbo");
+        defaults.put("sumi3909", "Snailmi");
+        defaults.put("Vermilyra", "Snailyra");
+        defaults.put("Blithesome89", "Blithesnail");
+        defaults.put("Feufeu000", "SlimeySnail000");
+        defaults.put("Lennydavillain", "LennyDaSnail");
+        defaults.put("Cryoclipse_", "CryoShell");
+        defaults.put("championhestu", "SnailChampion");
+        defaults.put("P1NKSY", "Snailsy");
+        defaults.put("Random", "");
+        defaults.put("Pitterr_", "Pittastropod");
+        defaults.put("Bikerboys", "Slimeyboys");
+        defaults.put("astroey", "Slimey");
+        defaults.put("CTheKeyLord", "CTheSnailLord");
+        defaults.put("MrMidnight", "MrSlimeNight");
+        defaults.put("Cake_Crazy22", "Snail_Crazy22");
+        defaults.put("Teei", "Sneei");
+        defaults.put("DBisCrazy", "DBisSlimey");
+        defaults.put("Maddnova109", "MaddSnail109");
+
+        return defaults;
+    }
+
+    public static class SnailNameLoader implements SimpleSynchronousResourceReloadListener {
+        public static final Identifier ID = Identifier.of("wackylife", "snailnameloader");
+
+        @Override
+        public Identifier getFabricId() {
+            return ID;
+        }
+
+        @Override
+        public void reload(ResourceManager manager) {
+            Path configDir = FabricLoader.getInstance().getConfigDir();
+            Path wackylifeDir = configDir.resolve("wackylife");
+            snailFile = wackylifeDir.resolve("snail_names.json");
+
+            try {
+                Files.createDirectories(wackylifeDir);
+
+                if (Files.notExists(snailFile)) {
+                    // Create defaults
+                    Map<String, String> defaults = createDefaultSnailNames();
+
+                    String json = GSON.toJson(defaults);
+                    Files.writeString(snailFile, json);
+
+                    snailNames.clear();
+                    snailNames.putAll(defaults);
+                    return;
+                }
+
+                // Load existing file
+                String json = Files.readString(snailFile);
+
+                Type type = new TypeToken<Map<String, String>>() {}.getType();
+                Map<String, String> loaded = GSON.fromJson(json, type);
+
+                snailNames.clear();
+                if (loaded != null) {
+                    for (Map.Entry<String, String> entry : loaded.entrySet()) {
+                        snailNames.put(entry.getKey().toLowerCase(), entry.getValue());
+                    }
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
