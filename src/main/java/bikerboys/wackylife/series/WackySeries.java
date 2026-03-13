@@ -285,7 +285,7 @@ public class WackySeries {
            //     chooseRandomWildcard();
             //}
 
-            showCryptTitle("A wildcard is active!", server, wildcard1);
+            showCryptTitle("A wacky twist is active!", server, wildcard1);
         });
     }
 

@@ -33,7 +33,7 @@ public class FinalWildcard extends Wildcard {
      */
 
     public int phase = 0;
-    private int phaseTimer = 0;
+    public int phaseTimer = 0;
     private boolean transitioning = false;
 
     private static final int PHASE_TIME = 29 * 60 * 20;
@@ -48,7 +48,7 @@ public class FinalWildcard extends Wildcard {
      */
 
     public List<UUID> processQueue = new ArrayList<>();
-    public int choicesTickDelay = 5000;
+    public int choicesTickDelay = 3500;
 
     /*
      * =====================================
@@ -99,6 +99,8 @@ public class FinalWildcard extends Wildcard {
         deactivateCurrentPhase(server);
     }
 
+
+
     /*
      * =====================================
      * TICK
@@ -120,11 +122,7 @@ public class FinalWildcard extends Wildcard {
                 transitioning = true;
                 phaseTimer = TRANSITION_TIME;
 
-                PlayerUtils.sendTitleToPlayers(
-                        server.getPlayerManager().getPlayerList(),
-                        Text.literal("§r§6§lA wacky twist has faded"),
-                        10,120,10
-                );
+                showCryptTitle("A wacky twist has faded", server);
 
                 deactivateCurrentPhase(server);
             }
@@ -135,17 +133,13 @@ public class FinalWildcard extends Wildcard {
 
                 phase++;
 
-                if (phase >= 4) return;
+                if (phase >= 6) return;
 
                 showDots(server);
 
                 TaskScheduler.scheduleTask(90, () -> {
 
-                    PlayerUtils.sendTitleToPlayers(
-                            server.getPlayerManager().getPlayerList(),
-                            Text.literal("§r§6§lA wacky twist has activated!"),
-                            10,120,10
-                    );
+                    showCryptTitle("A wacky twist has activated", server);
 
                     activateCurrentPhase(server);
 
@@ -157,11 +151,61 @@ public class FinalWildcard extends Wildcard {
         }
     }
 
+
+    /*
+     * =====================================
+     * CRYPT TITLE ANIMATION
+     * =====================================
+     */
+
+    private void showCryptTitle(String text, MinecraftServer server) {
+
+        PlayerUtils.playSoundToPlayers(
+                server.getPlayerManager().getPlayerList(),
+                SoundEvents.ENTITY_ZOMBIE_VILLAGER_CURE,
+                0.2f, 1
+        );
+
+        String colorCrypt  = "§r§6§l§k";
+        String colorNormal = "§r§6§l";
+        Random rand = new Random();
+
+        List<Integer> encryptedIndexes = new ArrayList<>();
+        for (int i = 0; i < text.length(); i++) {
+            encryptedIndexes.add(i);
+        }
+
+        for (int i = 0; i < text.length(); i++) {
+            if (!encryptedIndexes.isEmpty()) {
+                encryptedIndexes.remove(rand.nextInt(encryptedIndexes.size()));
+            }
+
+            StringBuilder result = new StringBuilder();
+            for (int j = 0; j < text.length(); j++) {
+                result.append(encryptedIndexes.contains(j) ? colorCrypt : colorNormal);
+                result.append(text.charAt(j));
+            }
+
+            TaskScheduler.scheduleTask((i + 1) * 4, () ->
+                    PlayerUtils.sendTitleToPlayers(
+                            server.getPlayerManager().getPlayerList(),
+                            Text.literal(String.valueOf(result)),
+                            0, 30, 20
+                    ));
+        }
+    }
+
     private void runCurrentPhase(MinecraftServer server) {
-        if (phase == 0) tickChoices(server);
-        if (phase == 1) tickSnails(server);
-        if (phase == 2) tickWackySkins(server);
-        if (phase == 3) tickSwap(server);
+        if (phase == 0 || phase == 4) tickChoices(server);
+        if (phase == 1 || phase == 4) tickSnails(server);
+        if (phase == 2 || phase == 4) tickWackySkins(server);
+        if (phase == 3 || phase == 4) tickSwap(server);
+        if (phase == 4);
+        if (phase == 5);
+    }
+
+    private void tickAll(MinecraftServer server) {
+
     }
 
     /*
@@ -172,11 +216,11 @@ public class FinalWildcard extends Wildcard {
 
     private void activateCurrentPhase(MinecraftServer server) {
 
-        if (phase == 0) {
+        if (phase == 0 || phase == 4) {
             choicesTickDelay = 5000;
         }
 
-        if (phase == 1) {
+        if (phase == 1 || phase == 4) {
 
             snails.clear();
 
@@ -187,7 +231,7 @@ public class FinalWildcard extends Wildcard {
             }
         }
 
-        if (phase == 2) {
+        if (phase == 2 || phase == 4) {
 
             playerNameMap.clear();
 
@@ -210,22 +254,22 @@ public class FinalWildcard extends Wildcard {
             sendWackyMap(server);
         }
 
-        if (phase == 3) {
+        if (phase == 3 || phase == 4) {
             swapTimer = getRandomSwapInterval();
         }
     }
 
-    private void deactivateCurrentPhase(MinecraftServer server) {
+    public void deactivateCurrentPhase(MinecraftServer server) {
 
-        if (phase == 0) {
+        if (phase == 0 || phase == 4) {
             clearChoices(server);
         }
 
-        if (phase == 1) {
+        if (phase == 1 || phase == 4) {
             killAllSnails(server);
         }
 
-        if (phase == 2) {
+        if (phase == 2 || phase == 4) {
             playerNameMap.clear();
             sendWackyMap(server);
         }
@@ -530,6 +574,45 @@ public class FinalWildcard extends Wildcard {
                 Text.literal(text),
                 0, 40, 0
         );
+    }
+
+
+    public int getPhase() {
+        return phase;
+    }
+
+    public int getPhaseTimer() {
+        return phaseTimer;
+    }
+
+    public boolean isTransitioning() {
+        return transitioning;
+    }
+
+    public void forceNextPhase(MinecraftServer server) {
+        deactivateCurrentPhase(server);
+        phase++;
+        transitioning = false;
+        phaseTimer = PHASE_TIME;
+
+        if (phase >= 6) {
+            phase = 6; // clamp so it doesn't go out of range
+            return;
+        }
+
+        activateCurrentPhase(server);
+    }
+
+    public String getPhaseName() {
+        return switch (phase) {
+            case 0 -> "Choices";
+            case 1 -> "Snails";
+            case 2 -> "Wacky Skins";
+            case 3 -> "Swap";
+            case 4 -> "All";
+            case 5 -> "Nothing";
+            default -> "Unknown";
+        };
     }
 
     @Override

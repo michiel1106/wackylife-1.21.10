@@ -6,6 +6,7 @@ package bikerboys.wackylife.entity.snail.server;
 
 
 import bikerboys.wackylife.*;
+import bikerboys.wackylife.Wildcard.*;
 import bikerboys.wackylife.Wildcard.wildcards.*;
 import bikerboys.wackylife.entity.*;
 import bikerboys.wackylife.entity.snail.*;
@@ -139,8 +140,7 @@ public class SnailServerData implements PlayerBoundEntity {
         ServerPlayerEntity player = getPlayer();
         if (player == null || (player.isSpectator() && ScoreboardManager.INSTANCE.isDead(player))) {
             despawnPlayerChecks++;
-        }
-        else {
+        } else {
             despawnPlayerChecks = 0;
         }
 
@@ -148,20 +148,27 @@ public class SnailServerData implements PlayerBoundEntity {
             despawn();
             return true;
         }
+
         if (snail.age % 10 == 0) {
             if (!snail.isFromTrivia()) {
-                if (!SnailsWildCard.snails.containsValue(snail) || !(WackyLife.wackyLife.getWildcardObj() instanceof SnailsWildCard)) {
+                boolean inSnailsWildcard = WackyLife.wackyLife.getWildcardObj() instanceof SnailsWildCard
+                        && SnailsWildCard.snails.containsValue(snail);
+
+                boolean inFinalWildcard = WackyLife.wackyLife.getWildcardObj() instanceof FinalWildcard
+                        && FinalWildcard.snails.containsValue(snail);
+
+                if (!inSnailsWildcard && !inFinalWildcard) {
                     despawn();
                     return true;
                 }
-            }
-            else {
+            } else {
                 if (snail.age >= 36000) {
                     despawn();
                     return true;
                 }
             }
         }
+
         return false;
     }
 
@@ -173,7 +180,13 @@ public class SnailServerData implements PlayerBoundEntity {
         if (WildcardManager.FINALE) return true;
          return Wildcard.isFinale();
          */
-       return false;
+
+        Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+        if (wildcardObj instanceof FinalWildcard) {
+            return true;
+        }
+
+        return false;
     }
 
     public void setFromTrivia() {

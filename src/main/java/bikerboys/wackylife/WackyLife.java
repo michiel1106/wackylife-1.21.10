@@ -71,8 +71,8 @@ public class WackyLife implements ModInitializer {
 
 		ServerPlayNetworking.registerGlobalReceiver(SendChoices.ID, ((sendChoices, context) -> {
 			Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
-			if (wildcardObj instanceof Choices choices) {
-				choices.playerChose(context.player(), sendChoices.choices());
+			if (wildcardObj instanceof Choices choices || wildcardObj instanceof FinalWildcard wildcard) {
+				Choices.playerChose(context.player(), sendChoices.choices());
 			}
 		}));
 

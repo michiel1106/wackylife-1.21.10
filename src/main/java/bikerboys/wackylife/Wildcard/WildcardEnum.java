@@ -12,7 +12,7 @@ public enum WildcardEnum implements StringIdentifiable {
     SNAILS("snails"),
     ANXIETY("anxiety"),
     APOCALYPSE("apocalypse"),
-    FINALWILDCARD("finalwilcard"),
+    FINALWILDCARD("finalwildcard"),
     EMPTY("empty");
 
 

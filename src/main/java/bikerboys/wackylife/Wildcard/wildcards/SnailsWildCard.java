@@ -199,7 +199,7 @@ public class SnailsWildCard extends Wildcard {
         defaults.put("Cake_Crazy22", "Snail_Crazy22");
         defaults.put("Teei", "Sneei");
         defaults.put("DBisCrazy", "DBisSlimey");
-        defaults.put("Maddnova109", "MaddSnail109");
+        defaults.put("MaddNova109", "MaddSnail109");
 
         return defaults;
     }

@@ -58,7 +58,7 @@ dependencies {
 
 	compileOnly files("libs/file.jar")
 
-	modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-${project.voicechat_mod_version}"
+	modImplementation "maven.modrinth:simple-voice-chat:fabric-${project.voicechat_mod_version}"
 
 	implementation "de.maxhenkel.voicechat:voicechat-api:${project.voicechat_api_version}"
 

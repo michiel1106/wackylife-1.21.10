@@ -35,6 +35,105 @@ public class WackyCmdManager {
 
 
 
+
+        root.then(CommandManager.literal("wildcard")
+                .requires(source -> source.hasPermissionLevel(2))
+                .then(CommandManager.literal("finalwildcard")
+                        // /wackylife wildcard finalwildcard phase
+                        .then(CommandManager.literal("phase")
+                                .executes(context -> {
+                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                    if (!(wildcardObj instanceof FinalWildcard fw)) {
+                                        context.getSource().sendError(Text.literal("Final Wildcard is not active."));
+                                        return 0;
+                                    }
+                                    context.getSource().sendFeedback(() ->
+                                            Text.literal("Current phase: §6" + fw.getPhase() + "§r (§e" + fw.getPhaseName() + "§r)" +
+                                                    (fw.isTransitioning() ? " §7[transitioning]" : "")), false);
+                                    return fw.getPhase();
+                                }))
+
+                        // /wackylife wildcard finalwildcard time
+                        .then(CommandManager.literal("time")
+                                .executes(context -> {
+                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                    if (!(wildcardObj instanceof FinalWildcard fw)) {
+                                        context.getSource().sendError(Text.literal("Final Wildcard is not active."));
+                                        return 0;
+                                    }
+                                    int ticks = fw.getPhaseTimer();
+                                    int seconds = ticks / 20;
+                                    int minutes = seconds / 60;
+                                    int remSeconds = seconds % 60;
+
+                                    String label = fw.isTransitioning() ? "transition ends" : "phase ends";
+                                    context.getSource().sendFeedback(() ->
+                                            Text.literal("Time until " + label + ": §6" + minutes + "m " + remSeconds + "s §7(" + ticks + " ticks)"), false);
+                                    return ticks;
+                                }))
+
+                        // /wackylife wildcard finalwildcard next
+                        .then(CommandManager.literal("next")
+                                .executes(context -> {
+                                    Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                    if (!(wildcardObj instanceof FinalWildcard fw)) {
+                                        context.getSource().sendError(Text.literal("Final Wildcard is not active."));
+                                        return 0;
+                                    }
+                                    if (fw.getPhase() >= 6) {
+                                        context.getSource().sendError(Text.literal("Already on the last phase."));
+                                        return 0;
+                                    }
+                                    fw.forceNextPhase(context.getSource().getServer());
+                                    context.getSource().sendFeedback(() ->
+                                            Text.literal("§aForced transition to phase §6" + fw.getPhase() + "§r (§e" + fw.getPhaseName() + "§r)"), true);
+                                    return 1;
+                                }))
+
+                        // /wackylife wildcard finalwildcard setphase <0-3>
+                        .then(CommandManager.literal("setphase")
+                                .then(CommandManager.argument("phase", IntegerArgumentType.integer(-2, 6))
+                                        .executes(context -> {
+                                            Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                            if (!(wildcardObj instanceof FinalWildcard fw)) {
+                                                context.getSource().sendError(Text.literal("Final Wildcard is not active."));
+                                                return 0;
+                                            }
+                                            int targetPhase = IntegerArgumentType.getInteger(context, "phase");
+                                            fw.deactivateCurrentPhase(context.getSource().getServer()); // need to make package-accessible
+                                            fw.phase = targetPhase;
+                                            fw.forceNextPhase(context.getSource().getServer()); // activates from given phase
+                                            // Actually just set directly:
+                                            context.getSource().sendFeedback(() ->
+                                                    Text.literal("§aJumped to phase §6" + fw.getPhase() + "§r (§e" + fw.getPhaseName() + "§r)"), true);
+                                            return 1;
+                                        })))
+
+                        // /wackylife wildcard finalwildcard time set <ticks>
+                        .then(CommandManager.literal("settime")
+                                .then(CommandManager.argument("time", WackyTimeArgumentType.time())
+                                        .suggests((ctx, builder) -> CommandSource.suggestMatching(new String[]{"1t","1s","1m","1h","1d"}, builder))
+                                        .executes(context -> {
+                                            Wildcard wildcardObj = WackyLife.wackyLife.getWildcardObj();
+                                            if (!(wildcardObj instanceof FinalWildcard fw)) {
+                                                context.getSource().sendError(Text.literal("Final Wildcard is not active."));
+                                                return 0;
+                                            }
+                                            int time = IntegerArgumentType.getInteger(context, "time");
+                                            fw.phaseTimer = time;
+
+                                            int seconds = time / 20;
+                                            int minutes = seconds / 60;
+                                            int remSeconds = seconds % 60;
+
+                                            context.getSource().sendFeedback(() ->
+                                                    Text.literal("§aPhase timer set to §6" + minutes + "m " + remSeconds + "s §7(" + time + " ticks)"), true);
+                                            return time;
+                                        })))
+                )
+        );
+
+
         root.then(CommandManager.literal("wildcard")
                 .requires(serverCommandSource -> serverCommandSource.hasPermissionLevel(2))
                 .then(CommandManager.literal("snails")

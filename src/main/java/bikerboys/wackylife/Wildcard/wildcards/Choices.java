@@ -45,7 +45,7 @@ public class Choices extends Wildcard {
         }
     }
 
-    public void playerChose(ServerPlayerEntity player, ChoicePair choicePair) {
+    public static void playerChose(ServerPlayerEntity player, ChoicePair choicePair) {
         Choice posChoice = ChoiceRegistry.get(choicePair.positiveChoice());
         Choice negChoice = ChoiceRegistry.get(choicePair.negativeChoice());
         ChoiceManager.setChoice(player, posChoice, negChoice);

@@ -25,41 +25,49 @@ public class PlayerListHudMixin {
 			List<PlayerListEntry> filtered = original.stream()
 					.filter(e -> WackyLifeClient.playerNameList.contains(e.getProfile().name()))
 					.map(e -> {
-						GameProfile old = e.getProfile();
-						Pair<String, Integer> stringIntegerPair = WackyLifeClient.playerNameMap.get(e.getProfile().name());
+						try {
+							GameProfile old = e.getProfile();
+							Pair<String, Integer> stringIntegerPair = WackyLifeClient.playerNameMap.get(e.getProfile().name());
 
+							if (stringIntegerPair != null) {
 
-						GameProfile mapped = new GameProfile(old.id(), stringIntegerPair.getLeft());
+								GameProfile mapped = new GameProfile(old.id(), stringIntegerPair.getLeft());
 
-						PlayerListEntry playerListEntry = new PlayerListEntry(mapped, true);
+								PlayerListEntry playerListEntry = new PlayerListEntry(mapped, true);
 
-						Integer right = stringIntegerPair.getRight();
+								Integer right = stringIntegerPair.getRight();
 
-						Formatting color;
-						if (right >= 4) {
-							color = Formatting.DARK_GREEN;
-						} else if (right == 3) {
-							color = Formatting.GREEN;
-						} else if (right == 2) {
-							color = Formatting.YELLOW;
-						} else if (right == 1) {
-							color = Formatting.RED;
-						} else {
-							color = null;
+								Formatting color;
+								if (right >= 4) {
+									color = Formatting.DARK_GREEN;
+								} else if (right == 3) {
+									color = Formatting.GREEN;
+								} else if (right == 2) {
+									color = Formatting.YELLOW;
+								} else if (right == 1) {
+									color = Formatting.RED;
+								} else {
+									color = null;
+								}
+
+								Style style = Style.EMPTY;
+
+								if (e.getDisplayName() != null && e.getDisplayName().getStyle() != null) {
+									style = e.getDisplayName().getStyle();
+								}
+
+								if (color != null) {
+									style.withColor(color);
+									playerListEntry.setDisplayName(Text.literal(stringIntegerPair.getLeft()).setStyle(style).formatted(color));
+								}
+
+								return playerListEntry;
+							}
+						} catch (Exception exception) {
+							exception.printStackTrace();
 						}
 
-						Style style = Style.EMPTY;
-
-                        if (e.getDisplayName() != null && e.getDisplayName().getStyle() != null) {
-							style = e.getDisplayName().getStyle();
-                        }
-
-                        if (color != null) {
-							style.withColor(color);
-							playerListEntry.setDisplayName(Text.literal(stringIntegerPair.getLeft()).setStyle(style).formatted(color));
-                        }
-
-                        return playerListEntry;
+						return e;
 					})
 					.toList();
 
